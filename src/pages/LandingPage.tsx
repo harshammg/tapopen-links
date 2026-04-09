@@ -60,29 +60,7 @@ const LandingPage = () => {
             </div>
           </ScrollFadeIn>
 
-          {/* Phone mockups */}
-          <ScrollFadeIn delay={400} className="mt-16">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-              <div className="relative">
-                <div className="rounded-[2rem] border-2 border-border bg-card p-3 opacity-50">
-                  <div className="rounded-[1.5rem] bg-muted aspect-[9/16] flex flex-col items-center justify-center p-6">
-                    <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground text-sm text-center">In-app browser<br/>No login • No subscribe • Broken UX</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mt-3 font-medium">Without TapOpen</p>
-              </div>
-              <div className="relative">
-                <div className="rounded-[2rem] border-2 border-primary/40 bg-card p-3 glow">
-                  <div className="rounded-[1.5rem] gradient-bg aspect-[9/16] flex flex-col items-center justify-center p-6">
-                    <Smartphone className="h-12 w-12 text-primary-foreground mb-4" />
-                    <p className="text-primary-foreground text-sm text-center font-medium">Native App<br/>Full experience • Logged in • Converts</p>
-                  </div>
-                </div>
-                <p className="text-sm text-foreground mt-3 font-medium">With TapOpen ✨</p>
-              </div>
-            </div>
-          </ScrollFadeIn>
+
         </div>
       </section>
 
