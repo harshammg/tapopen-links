@@ -5,9 +5,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import LandingPage from "./pages/LandingPage";
 import DashboardLayout from "./components/DashboardLayout";
-import MyLinks from "./pages/MyLinks";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import BioPage from "./pages/BioPage";
+import QuickLinkGenerator from "./pages/QuickLinkGenerator";
+import SettingsPage from "./pages/SettingsPage";
+import AuthPage from "./pages/AuthPage";
+import RedirectHandler from "./pages/RedirectHandler";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,11 +21,13 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<AuthPage mode="login" />} />
+          <Route path="/signup" element={<AuthPage mode="signup" />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<MyLinks />} />
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="bio" element={<BioPage />} />
+            <Route index element={<QuickLinkGenerator />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
+          <Route path="/:slug" element={<RedirectHandler />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
