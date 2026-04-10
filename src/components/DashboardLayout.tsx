@@ -15,6 +15,14 @@ const DashboardLayout = () => {
   const [userName, setUserName] = useState("User");
 
   useEffect(() => {
+    if (!supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        navigate("/auth/login");
+      }
+    });
+
     const fetchUserData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -22,9 +30,9 @@ const DashboardLayout = () => {
         return;
       }
 
-      const { data: profile, error } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
-        .select("full_name, handle, plan_type")
+        .select("full_name, handle")
         .eq("id", session.user.id)
         .single();
       
@@ -36,6 +44,7 @@ const DashboardLayout = () => {
     };
 
     fetchUserData();
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogout = async () => {

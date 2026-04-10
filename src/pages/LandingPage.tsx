@@ -1,10 +1,21 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Smartphone, Zap, ClipboardPaste, Share2, Shield, Globe, Lock, CheckCircle2, AlertCircle } from "lucide-react";
+import { ArrowRight, Smartphone, Zap, ClipboardPaste, Share2, Shield, Globe, Lock, CheckCircle2, AlertCircle, LayoutDashboard } from "lucide-react";
 import { platforms } from "@/lib/data";
 import { ScrollFadeIn } from "@/components/ScrollFadeIn";
+import { supabase } from "@/lib/supabase";
 
 const LandingPage = () => {
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -15,8 +26,18 @@ const LandingPage = () => {
             <a href="#how-it-works" className="hover:text-primary transition-colors">How it works</a>
           </div>
           <div className="flex gap-2 md:gap-4">
-            <Button variant="ghost" size="sm" className="font-bold text-xs uppercase" asChild><Link to="/auth/login">Login</Link></Button>
-            <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild><Link to="/auth/signup">Join Now</Link></Button>
+            {session ? (
+              <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild>
+                <Link to="/dashboard">
+                  <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="font-bold text-xs uppercase" asChild><Link to="/auth/login">Login</Link></Button>
+                <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild><Link to="/auth/signup">Join Now</Link></Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -44,7 +65,9 @@ const LandingPage = () => {
           <ScrollFadeIn delay={300}>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="gradient" size="lg" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl text-md font-bold shadow-xl shadow-primary/20" asChild>
-                <Link to="/auth/signup">Create Your First Deep Link</Link>
+                <Link to={session ? "/dashboard" : "/auth/signup"}>
+                  {session ? "Go to Dashboard" : "Create Your First Deep Link"}
+                </Link>
               </Button>
             </div>
           </ScrollFadeIn>
@@ -126,7 +149,9 @@ const LandingPage = () => {
             <h2 className="text-3xl md:text-5xl font-display font-bold mb-6 md:mb-8 leading-tight text-white">Ready to increase your <br />engagement by 40%?</h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="secondary" size="lg" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl text-md font-bold" asChild>
-                <Link to="/auth/signup">Get Your Free Links</Link>
+                <Link to={session ? "/dashboard" : "/auth/signup"}>
+                  {session ? "Go to Dashboard" : "Get Your Free Links"}
+                </Link>
               </Button>
             </div>
             <p className="mt-6 md:mt-8 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">No credit card required for free tier</p>
