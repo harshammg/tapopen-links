@@ -224,16 +224,6 @@ const RedirectHandler = () => {
           <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => window.history.back()}>
             Wait, take me back
           </Button>
-          <div className="pt-8 border-t border-slate-900">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-4">Taking too long?</p>
-            {targetUrl && (
-              <a href={targetUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="rounded-xl border-slate-800 text-slate-400 hover:text-white">
-                  Open directly <ExternalLink className="ml-1 h-3 w-3" />
-                </Button>
-              </a>
-            )}
-          </div>
         </div>
       </div>
     </div>
