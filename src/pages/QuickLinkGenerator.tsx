@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 
 const QuickLinkGenerator = () => {
   const [url, setUrl] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
   const [generatedLinks, setGeneratedLinks] = useState<{original_url: string, slug: string, platform: string, clicks: number}[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -69,7 +70,19 @@ const QuickLinkGenerator = () => {
     setIsGenerating(true);
     try {
       const platform = getPlatform(url);
-      const slug = nanoid(8); // Use secure nanoid for slugs
+      
+      // Slug Logic: Use custom if provided, otherwise random
+      let finalSlug = customSlug.trim().toLowerCase().replace(/\s+/g, '-');
+      if (!finalSlug) {
+        finalSlug = nanoid(8);
+      } else {
+        // Basic validation for custom slug
+        if (!/^[a-z0-9-_]+$/.test(finalSlug)) {
+          toast.error("Alias can only contain letters, numbers, dashes, and underscores.");
+          setIsGenerating(false);
+          return;
+        }
+      }
 
       const { data, error } = await supabase
         .from("links")
@@ -77,7 +90,7 @@ const QuickLinkGenerator = () => {
           { 
             original_url: url, 
             platform, 
-            slug, 
+            slug: finalSlug, 
             clicks: 0,
             user_id: session.user.id 
           }
@@ -91,9 +104,14 @@ const QuickLinkGenerator = () => {
         toast.success("Deep link generated!");
         fetchUserData();
         setUrl("");
+        setCustomSlug("");
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to generate link");
+      if (error?.code === '23505') {
+        toast.error("This alias is already taken. Try another!");
+      } else {
+        toast.error(error.message || "Failed to generate link");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -162,6 +180,24 @@ const QuickLinkGenerator = () => {
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
                   {isGenerating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" /> : <Link2 className="h-5 w-5 text-muted-foreground" />}
+                </div>
+              </div>
+
+              <div className="space-y-1.5 px-1">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                  Custom Alias (Optional)
+                </label>
+                <div className="flex items-center gap-2">
+                  <div className="bg-muted px-3 py-3 rounded-xl text-xs font-bold text-muted-foreground border border-border">
+                    tapopen.online/
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="my-cool-link"
+                    value={customSlug}
+                    onChange={(e) => setCustomSlug(e.target.value)}
+                    className="flex-1 bg-background border border-border focus:border-primary rounded-xl px-4 py-3 text-sm font-medium transition-all focus:outline-none"
+                  />
                 </div>
               </div>
 
