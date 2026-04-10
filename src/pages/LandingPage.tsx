@@ -52,7 +52,7 @@ const LandingPage = () => {
       </section>
 
       {/* The Problem (Visualized) */}
-      <section className="py-16 md:py-24 px-4 md:px-6 bg-muted/30">
+      <section className="hidden md:block py-16 md:py-24 px-4 md:px-6 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center font-display">
             <ScrollFadeIn>
