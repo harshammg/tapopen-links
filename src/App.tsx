@@ -20,10 +20,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/landing" element={<LandingPage />} />
-          <Route path="/login" element={<AuthPage mode="login" />} />
-          <Route path="/signup" element={<AuthPage mode="signup" />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth/login" element={<AuthPage mode="login" />} />
+          <Route path="/auth/signup" element={<AuthPage mode="signup" />} />
+          {/* Legacy redirects */}
+          <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/signup" element={<Navigate to="/auth/signup" replace />} />
+          <Route path="/landing" element={<Navigate to="/" replace />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<QuickLinkGenerator />} />
             <Route path="settings" element={<SettingsPage />} />

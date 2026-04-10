@@ -53,7 +53,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
           navigate("/dashboard");
         } else {
           toast.success("Account created! Please check your email to confirm.");
-          navigate("/login");
+          navigate("/auth/login");
         }
       } else {
         let loginEmail = emailOrUsername;
@@ -104,7 +104,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
       <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
 
-      <Link to="/landing" className="flex items-center gap-2 mb-8 group transition-all hover:scale-105">
+      <Link to="/" className="flex items-center gap-2 mb-8 group transition-all hover:scale-105">
         <div className="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
           <Zap className="text-primary-foreground h-5 w-5" />
         </div>
@@ -202,7 +202,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         <p className="text-center mt-10 text-sm text-muted-foreground">
           {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
           <Link 
-            to={mode === "login" ? "/signup" : "/login"} 
+            to={mode === "login" ? "/auth/signup" : "/auth/login"} 
             className="text-primary font-bold hover:underline underline-offset-4"
           >
             {mode === "login" ? "Sign up" : "Log in"}

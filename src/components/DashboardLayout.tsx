@@ -18,7 +18,7 @@ const DashboardLayout = () => {
     const fetchUserData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/login");
+        navigate("/auth/login");
         return;
       }
 
@@ -41,7 +41,7 @@ const DashboardLayout = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success("Logged out successfully");
-    navigate("/login");
+    navigate("/auth/login");
   };
 
   return (

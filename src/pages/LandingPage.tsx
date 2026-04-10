@@ -15,8 +15,8 @@ const LandingPage = () => {
             <a href="#how-it-works" className="hover:text-primary transition-colors">How it works</a>
           </div>
           <div className="flex gap-2 md:gap-4">
-            <Button variant="ghost" size="sm" className="font-bold text-xs uppercase" asChild><Link to="/login">Login</Link></Button>
-            <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild><Link to="/signup">Join Now</Link></Button>
+            <Button variant="ghost" size="sm" className="font-bold text-xs uppercase" asChild><Link to="/auth/login">Login</Link></Button>
+            <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild><Link to="/auth/signup">Join Now</Link></Button>
           </div>
         </div>
       </nav>
@@ -44,7 +44,7 @@ const LandingPage = () => {
           <ScrollFadeIn delay={300}>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="gradient" size="lg" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl text-md font-bold shadow-xl shadow-primary/20" asChild>
-                <Link to="/signup">Create Your First Deep Link</Link>
+                <Link to="/auth/signup">Create Your First Deep Link</Link>
               </Button>
             </div>
           </ScrollFadeIn>
@@ -126,7 +126,7 @@ const LandingPage = () => {
             <h2 className="text-3xl md:text-5xl font-display font-bold mb-6 md:mb-8 leading-tight text-white">Ready to increase your <br />engagement by 40%?</h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="secondary" size="lg" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl text-md font-bold" asChild>
-                <Link to="/signup">Get Your Free Links</Link>
+                <Link to="/auth/signup">Get Your Free Links</Link>
               </Button>
             </div>
             <p className="mt-6 md:mt-8 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">No credit card required for free tier</p>
