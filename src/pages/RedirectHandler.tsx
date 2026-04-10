@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Zap, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -88,6 +88,7 @@ const toAndroidIntent = (url: string): string => {
 
 const RedirectHandler = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [targetUrl, setTargetUrl] = useState<string | null>(null);
   const [needsManualOpen, setNeedsManualOpen] = useState(false);
@@ -221,7 +222,17 @@ const RedirectHandler = () => {
         </div>
 
         <div className="flex flex-col gap-4">
-          <Button variant="ghost" className="text-slate-400 hover:text-white" onClick={() => window.history.back()}>
+          <Button
+            variant="ghost"
+            className="text-slate-400 hover:text-white"
+            onClick={() => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                navigate("/landing");
+              }
+            }}
+          >
             Wait, take me back
           </Button>
         </div>
