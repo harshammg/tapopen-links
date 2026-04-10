@@ -54,6 +54,11 @@ const toAppScheme = (url: string): string | null => {
     if (host.includes("snapchat.com")) {
       return `snapchat://add/${u.pathname.replace(/\//g, "")}`;
     }
+    if (host.includes("docs.google.com")) {
+      if (u.pathname.includes("/document")) return `googledocs://`;
+      if (u.pathname.includes("/spreadsheets")) return `googlesheets://`;
+      if (u.pathname.includes("/presentation")) return `googleslides://`;
+    }
   } catch (_) {}
   return null;
 };
@@ -66,20 +71,33 @@ const toAndroidIntent = (url: string): string => {
   try {
     const u = new URL(url);
     const host = u.hostname.replace("www.", "");
-    const pkg  = host.includes("youtube")   ? "com.google.android.youtube"
-               : host.includes("instagram") ? "com.instagram.android"
-               : host.includes("spotify")   ? "com.spotify.music"
-               : host.includes("twitter") || host.includes("x.com") ? "com.twitter.android"
-               : host.includes("tiktok")    ? "com.zhiliaoapp.musically"
-               : host.includes("whatsapp")  ? "com.whatsapp"
-               : host.includes("telegram")  ? "org.telegram.messenger"
-               : host.includes("snapchat")  ? "com.snapchat.android"
-               : host.includes("linkedin")  ? "com.linkedin.android"
-               : null;
-
-    if (pkg) {
-      return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.replace(":", "")};package=${pkg};end`;
+    
+    // Check for specific apps
+    let pkg = null;
+    if (host.includes("youtube") || host.includes("youtu.be")) pkg = "com.google.android.youtube";
+    else if (host.includes("instagram")) pkg = "com.instagram.android";
+    else if (host.includes("spotify")) pkg = "com.spotify.music";
+    else if (host.includes("twitter") || host.includes("x.com")) pkg = "com.twitter.android";
+    else if (host.includes("tiktok")) pkg = "com.zhiliaoapp.musically";
+    else if (host.includes("whatsapp")) pkg = "com.whatsapp";
+    else if (host.includes("telegram")) pkg = "org.telegram.messenger";
+    else if (host.includes("snapchat")) pkg = "com.snapchat.android";
+    else if (host.includes("linkedin")) pkg = "com.linkedin.android";
+    else if (host.includes("docs.google.com")) {
+      if (u.pathname.includes("/document")) pkg = "com.google.android.apps.docs.editors.docs";
+      else if (u.pathname.includes("/spreadsheets")) pkg = "com.google.android.apps.docs.editors.sheets";
+      else if (u.pathname.includes("/presentation")) pkg = "com.google.android.apps.docs.editors.slides";
+      else if (u.pathname.includes("/forms")) pkg = "com.android.chrome"; // Forms -> System Browser
     }
+    else if (host.includes("forms.gle")) pkg = "com.android.chrome"; // GForms -> System Browser
+
+    // If no specific app package found, we use Chrome to force a browser opening (escaping the In-App browser)
+    if (!pkg) {
+      pkg = "com.android.chrome";
+    }
+
+    return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.replace(":", "")};package=${pkg};end`;
+
   } catch (_) {}
   return url;
 };
