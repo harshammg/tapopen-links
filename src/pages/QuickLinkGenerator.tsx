@@ -183,12 +183,12 @@ const QuickLinkGenerator = () => {
                 </div>
               </div>
 
-              <div className="space-y-1.5 px-1">
+              <div className="space-y-1.5 px-0.5">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
                   Custom Alias (Optional)
                 </label>
-                <div className="flex items-center gap-2">
-                  <div className="bg-muted px-3 py-3 rounded-xl text-xs font-bold text-muted-foreground border border-border">
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <div className="bg-muted px-2 md:px-3 py-3 rounded-xl text-[10px] md:text-xs font-bold text-muted-foreground border border-border whitespace-nowrap">
                     tapopen.online/
                   </div>
                   <input
@@ -196,15 +196,15 @@ const QuickLinkGenerator = () => {
                     placeholder="my-cool-link"
                     value={customSlug}
                     onChange={(e) => setCustomSlug(e.target.value)}
-                    className="flex-1 bg-background border border-border focus:border-primary rounded-xl px-4 py-3 text-sm font-medium transition-all focus:outline-none"
+                    className="flex-1 min-w-0 bg-background border border-border focus:border-primary rounded-xl px-3 md:px-4 py-3 text-sm font-medium transition-all focus:outline-none"
                   />
                 </div>
               </div>
 
               {detectedPlatform && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/20 rounded-pill w-max animate-fade-in-up">
-                  <detectedPlatform.icon className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-medium text-primary uppercase tracking-wider">{detectedPlatform.name} Detected</span>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-full w-max animate-fade-in-up">
+                  <detectedPlatform.icon className="h-3 w-3 md:h-4 md:w-4 text-primary" />
+                  <span className="text-[10px] md:text-xs font-medium text-primary uppercase tracking-wider">{detectedPlatform.name} Detected</span>
                 </div>
               )}
 
