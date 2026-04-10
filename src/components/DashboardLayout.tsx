@@ -45,9 +45,9 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background relative pb-24">
+    <div className="flex flex-col min-h-screen bg-background relative pb-28">
       {/* Universal Header */}
-      <header className="fixed top-4 left-4 right-4 z-50 bg-background/80 backdrop-blur-lg border border-border px-6 py-3 flex items-center justify-between rounded-full shadow-lg max-w-5xl mx-auto">
+      <header className="fixed top-3 left-3 right-3 md:top-4 md:left-4 md:right-4 z-50 bg-background/80 backdrop-blur-lg border border-border px-4 md:px-6 py-3 flex items-center justify-between rounded-full shadow-lg max-w-5xl mx-auto">
         <Link to="/" className="font-display text-xl font-bold gradient-text">TapOpen</Link>
         <button 
           onClick={handleLogout}
@@ -59,12 +59,12 @@ const DashboardLayout = () => {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-20">
+      <main className="flex-1 overflow-y-auto pt-20 md:pt-24">
         <Outlet />
       </main>
 
       {/* Universal bottom nav (Nav Dock) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[400px] z-50 bg-background/80 backdrop-blur-xl border border-border flex items-center justify-around py-3 px-6 rounded-full shadow-2xl">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[400px] z-50 bg-background/80 backdrop-blur-xl border border-border flex items-center justify-around py-2.5 px-4 rounded-full shadow-2xl">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           return (

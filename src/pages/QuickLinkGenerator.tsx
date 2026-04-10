@@ -135,32 +135,33 @@ const QuickLinkGenerator = () => {
   const isLimitReached = generatedLinks.length >= 2;
 
   return (
-    <div className="p-6 md:p-12 max-w-5xl mx-auto">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-5xl font-display font-bold mb-4">Quick Link Redirect</h1>
-        <p className="text-muted-foreground">The fastest way to bypass in-app browsers. Direct. Solid. Seamless.</p>
+    <div className="px-4 py-6 md:p-12 max-w-5xl mx-auto">
+      <div className="text-center mb-8 md:mb-12">
+        <h1 className="text-2xl md:text-5xl font-display font-bold mb-3">Quick Link Redirect</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Bypass in-app browsers. Direct. Solid. Seamless.</p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-6">
         {/* Generator Panel */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-card border border-primary rounded-2xl p-8 shadow-sm relative overflow-hidden">
-            <h3 className="text-xl font-display font-bold mb-6 flex items-center gap-2">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-card border border-primary rounded-2xl p-5 md:p-8 shadow-sm relative overflow-hidden">
+            <h3 className="text-lg md:text-xl font-display font-bold mb-5 flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" /> Create New Redirect
             </h3>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div className="relative">
                 <input
-                  type="text"
+                  type="url"
+                  inputMode="url"
                   placeholder="Paste your link here..."
                   value={url}
                   disabled={isGenerating}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="w-full bg-background border-2 border-border focus:border-primary rounded-xl px-6 py-5 text-lg font-medium transition-all focus:outline-none disabled:opacity-50"
+                  className="w-full bg-background border-2 border-border focus:border-primary rounded-xl px-4 pr-12 py-4 text-base font-medium transition-all focus:outline-none disabled:opacity-50"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  {isGenerating ? <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /> : <Link2 className="h-6 w-6 text-muted-foreground" />}
+                  {isGenerating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" /> : <Link2 className="h-5 w-5 text-muted-foreground" />}
                 </div>
               </div>
 
@@ -173,7 +174,7 @@ const QuickLinkGenerator = () => {
 
               <Button 
                 size="lg" 
-                className="w-full h-16 text-lg font-bold" 
+                className="w-full h-14 text-base font-bold" 
                 variant="gradient"
                 disabled={!url || isGenerating}
                 onClick={handleGenerate}
@@ -184,12 +185,10 @@ const QuickLinkGenerator = () => {
           </div>
         </div>
 
-        {/* Sidebar Info */}
-        <div className="space-y-6">
+        {/* Sidebar Info — hidden on mobile to save space */}
+        <div className="hidden lg:block space-y-6">
           <div className="bg-card border border-border rounded-2xl p-6">
-            <h4 className="font-display font-bold mb-4">
-              Creator Dashboard
-            </h4>
+            <h4 className="font-display font-bold mb-4">Creator Dashboard</h4>
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-sm text-foreground/80">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><Zap className="h-4 w-4" /></div>
@@ -212,49 +211,61 @@ const QuickLinkGenerator = () => {
       </div>
 
       {/* Manage Links Section */}
-      <div className="mt-16">
-        <h3 className="text-2xl font-display font-bold mb-8">Manage Your Redirects</h3>
+      <div className="mt-10 md:mt-16">
+        <h3 className="text-xl md:text-2xl font-display font-bold mb-4">Your Redirects</h3>
         {generatedLinks.length === 0 ? (
-          <div className="text-center py-20 border-2 border-border border-dashed rounded-2xl">
-            <Link2 className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-20" />
-            <p className="text-muted-foreground">No links generated yet. Create your first one above!</p>
+          <div className="text-center py-14 border-2 border-border border-dashed rounded-2xl">
+            <Link2 className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
+            <p className="text-muted-foreground text-sm">No links yet. Create your first one above!</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {generatedLinks.map((link) => (
-              <div key={link.slug} className="bg-card border border-border rounded-xl p-6 flex flex-col md:flex-row items-center gap-6 group hover:border-primary transition-all">
-                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 relative">
-                  <Globe className="h-6 w-6" />
-                  <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">{link.platform}</span>
-                </div>
-                <div className="flex-1 min-w-0 text-center md:text-left">
-                  <p className="font-mono text-lg font-bold text-primary mb-1">{window.location.origin}/{link.slug}</p>
-                  <p className="text-xs text-muted-foreground truncate opacity-70">{link.original_url}</p>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-center px-4">
-                    <p className="text-xl font-bold text-primary">{link.clicks}</p>
-                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Clicks</p>
-                  </div>
-                  <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Button variant="outline" className="flex-1 md:flex-none h-11 px-6 rounded-lg font-bold" onClick={() => handleCopy(link.slug)}>
-                      {copied === link.slug ? <Check className="h-4 w-4 mr-2 text-success" /> : <Copy className="h-4 w-4 mr-2" />}
-                      {copied === link.slug ? "Copied" : "Copy"}
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-11 w-11 text-muted-foreground hover:text-destructive rounded-lg transition-colors"
-                      onClick={() => handleDelete(link.slug)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold uppercase tracking-widest">
-                      Manage
-                      <span className="ml-1 text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">SOON</span>
-                    </Button>
+              <div key={link.slug} className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-3 hover:border-primary transition-all">
+
+                {/* Platform badge + Clicks */}
+                <div className="flex items-center justify-between">
+                  <span className="bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">
+                    {link.platform}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base font-bold text-primary">{link.clicks}</span>
+                    <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Clicks</span>
                   </div>
                 </div>
+
+                {/* Deep link URL in code block */}
+                <div className="bg-muted/40 rounded-xl px-3 py-2.5">
+                  <p className="font-mono text-xs font-bold text-primary break-all leading-relaxed">
+                    {window.location.origin}/{link.slug}
+                  </p>
+                </div>
+
+                {/* Original URL */}
+                <p className="text-[11px] text-muted-foreground truncate px-1">
+                  ↳ {link.original_url}
+                </p>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-10 rounded-xl font-bold text-sm"
+                    onClick={() => handleCopy(link.slug)}
+                  >
+                    {copied === link.slug ? <Check className="h-4 w-4 mr-2 text-success" /> : <Copy className="h-4 w-4 mr-2" />}
+                    {copied === link.slug ? "Copied!" : "Copy Link"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-muted-foreground hover:text-destructive rounded-xl transition-colors shrink-0"
+                    onClick={() => handleDelete(link.slug)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+
               </div>
             ))}
           </div>

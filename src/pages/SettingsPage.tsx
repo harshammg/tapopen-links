@@ -140,10 +140,10 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="p-6 md:p-12 max-w-4xl mx-auto">
-      <div className="mb-12">
-        <h1 className="text-4xl font-display font-bold mb-2">Account Settings</h1>
-        <p className="text-muted-foreground">Manage your creator identity, security, and preferences.</p>
+    <div className="px-4 py-6 md:p-12 max-w-4xl mx-auto pb-32">
+      <div className="mb-8 md:mb-12">
+        <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Account Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your creator identity, security, and preferences.</p>
       </div>
 
       <div className="space-y-10">
@@ -154,8 +154,8 @@ const SettingsPage = () => {
               <User className="h-5 w-5 text-primary" /> Creator Identity
             </h3>
           </div>
-          <div className="p-8 space-y-8">
-            <div className="flex flex-col md:flex-row items-center gap-8 pb-4">
+          <div className="p-5 md:p-8 space-y-6 md:space-y-8">
+            <div className="flex flex-col sm:flex-row items-center gap-6 pb-4">
               <div className="w-24 h-24 rounded-3xl gradient-bg flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl shrink-0">
                 {profile.full_name?.charAt(0).toUpperCase() || "U"}
               </div>
@@ -208,7 +208,7 @@ const SettingsPage = () => {
               <Link2 className="h-5 w-5 text-primary" /> Social Presence
             </h3>
           </div>
-          <div className="p-8 grid md:grid-cols-2 gap-6">
+          <div className="p-5 md:p-8 grid sm:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Instagram</label>
               <div className="relative">
@@ -258,7 +258,7 @@ const SettingsPage = () => {
               <Shield className="h-5 w-5 text-primary" /> Login & Security
             </h3>
           </div>
-          <div className="p-8 space-y-6">
+          <div className="p-5 md:p-8 space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
@@ -285,19 +285,19 @@ const SettingsPage = () => {
               <Trash2 className="h-5 w-5" /> Danger Zone
             </h3>
           </div>
-          <div className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="p-5 md:p-8 flex flex-col gap-6">
             <div className="max-w-md">
               <p className="font-bold text-destructive mb-1">Delete Account Permanently</p>
               <p className="text-sm text-muted-foreground leading-relaxed">This action cannot be undone. All your links, analytics, and settings will be wiped from our servers.</p>
             </div>
-            <Button variant="destructive" size="lg" className="rounded-2xl px-10" onClick={handleDeleteAccount}>
+            <Button variant="destructive" size="lg" className="rounded-2xl w-full sm:w-auto px-10" onClick={handleDeleteAccount}>
               Delete My Data
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="mt-16 sticky bottom-6 z-10 flex justify-end">
+      <div className="mt-8 sticky bottom-6 z-10 flex justify-end">
         <Button variant="gradient" className="h-14 px-12 rounded-2xl text-md font-bold shadow-2xl shadow-primary/30 min-w-[200px]" onClick={handleSave}>
           {saveStatus ? <Check className="h-5 w-5 mr-2" /> : null}
           {saveStatus ? "Changes Saved!" : "Save All Changes"}

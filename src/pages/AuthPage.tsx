@@ -99,19 +99,19 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center items-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4 relative overflow-hidden">
       {/* Abstract Background Accents */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
 
-      <Link to="/landing" className="flex items-center gap-2 mb-12 group transition-all hover:scale-105">
-        <div className="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
-          <Zap className="text-primary-foreground h-6 w-6" />
+      <Link to="/landing" className="flex items-center gap-2 mb-8 group transition-all hover:scale-105">
+        <div className="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
+          <Zap className="text-primary-foreground h-5 w-5" />
         </div>
-        <span className="text-2xl font-display font-bold tracking-tighter">TapOpen</span>
+        <span className="text-xl font-display font-bold tracking-tighter">TapOpen</span>
       </Link>
 
-      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 md:p-10 shadow-2xl relative">
+      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 md:p-10 shadow-2xl relative">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-display font-bold mb-2">
             {mode === "login" ? "Welcome Back" : "Create Account"}
