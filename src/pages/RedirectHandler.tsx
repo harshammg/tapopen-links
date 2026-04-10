@@ -221,21 +221,6 @@ const RedirectHandler = () => {
           <div className="h-full bg-primary animate-progress-fast w-full origin-left" />
         </div>
 
-        <div className="flex flex-col gap-4">
-          <Button
-            variant="ghost"
-            className="text-slate-400 hover:text-white"
-            onClick={() => {
-              if (window.history.length > 1) {
-                window.history.back();
-              } else {
-                navigate("/landing");
-              }
-            }}
-          >
-            Wait, take me back
-          </Button>
-        </div>
       </div>
     </div>
   );
