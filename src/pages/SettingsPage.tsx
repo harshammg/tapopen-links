@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Settings, Shield, Key, Trash2, Check, Loader2, 
-  User, Link2, Instagram, Twitter, Globe, Camera 
+  User, Link2, Instagram, Twitter, Globe 
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -93,6 +93,44 @@ const SettingsPage = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    const confirmDelete = window.confirm(
+      "Are you absolutely sure? This will permanently delete all your links and profile data. This action cannot be undone."
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // 1. Delete all links
+      const { error: linksError } = await supabase
+        .from("links")
+        .delete()
+        .eq("user_id", session.user.id);
+      
+      if (linksError) throw linksError;
+
+      // 2. Delete profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", session.user.id);
+      
+      if (profileError) throw profileError;
+
+      // 3. Sign out
+      await supabase.auth.signOut();
+      toast.success("Account data deleted successfully.");
+      window.location.href = "/";
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete account data");
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -118,13 +156,8 @@ const SettingsPage = () => {
           </div>
           <div className="p-8 space-y-8">
             <div className="flex flex-col md:flex-row items-center gap-8 pb-4">
-              <div className="relative group">
-                <div className="w-24 h-24 rounded-3xl gradient-bg flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl">
-                  {profile.full_name?.charAt(0).toUpperCase() || "U"}
-                </div>
-                <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-white border border-border rounded-xl flex items-center justify-center shadow-lg hover:text-primary transition-colors">
-                  <Camera className="h-3.5 w-3.5" />
-                </button>
+              <div className="w-24 h-24 rounded-3xl gradient-bg flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl shrink-0">
+                {profile.full_name?.charAt(0).toUpperCase() || "U"}
               </div>
               <div className="flex-1 space-y-4 w-full">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -257,7 +290,7 @@ const SettingsPage = () => {
               <p className="font-bold text-destructive mb-1">Delete Account Permanently</p>
               <p className="text-sm text-muted-foreground leading-relaxed">This action cannot be undone. All your links, analytics, and settings will be wiped from our servers.</p>
             </div>
-            <Button variant="destructive" size="lg" className="rounded-2xl px-10" onClick={() => toast.error("Please contact support to delete account")}>
+            <Button variant="destructive" size="lg" className="rounded-2xl px-10" onClick={handleDeleteAccount}>
               Delete My Data
             </Button>
           </div>

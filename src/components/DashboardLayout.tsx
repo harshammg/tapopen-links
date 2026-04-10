@@ -47,7 +47,7 @@ const DashboardLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background relative pb-24">
       {/* Universal Header */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border px-6 py-4 flex items-center justify-between">
+      <header className="fixed top-4 left-4 right-4 z-50 bg-background/80 backdrop-blur-lg border border-border px-6 py-3 flex items-center justify-between rounded-full shadow-lg max-w-5xl mx-auto">
         <Link to="/" className="font-display text-xl font-bold gradient-text">TapOpen</Link>
         <button 
           onClick={handleLogout}
@@ -59,24 +59,26 @@ const DashboardLayout = () => {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto pt-20">
         <Outlet />
       </main>
 
       {/* Universal bottom nav (Nav Dock) */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] z-50 bg-background/80 backdrop-blur-xl border-t border-border flex items-center justify-around py-3 px-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[400px] z-50 bg-background/80 backdrop-blur-xl border border-border flex items-center justify-around py-3 px-6 rounded-full shadow-2xl">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-1 transition-all duration-300 ${
-                active ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground"
+              className={`flex items-center gap-2 px-6 py-2 transition-all duration-300 rounded-full ${
+                active 
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <item.icon className={`h-6 w-6 ${active ? "fill-primary/10" : ""}`} />
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${active ? "opacity-100" : "opacity-60"}`}>
+              <item.icon className={`h-5 w-5 ${active ? "fill-primary-foreground/20" : ""}`} />
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${active ? "block" : "hidden md:block"}`}>
                 {item.label}
               </span>
             </Link>

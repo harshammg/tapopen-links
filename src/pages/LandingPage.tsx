@@ -8,7 +8,7 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="fixed top-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-md">
+      <nav className="fixed top-4 left-4 right-4 z-50 border border-border bg-background/80 backdrop-blur-md rounded-full shadow-lg max-w-7xl mx-auto">
         <div className="container mx-auto flex items-center justify-between h-16 px-6">
           <Link to="/" className="font-display text-xl font-bold gradient-text">TapOpen</Link>
           <div className="hidden md:flex items-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
@@ -123,7 +123,7 @@ const LandingPage = () => {
         <div className="container mx-auto max-w-3xl bg-primary text-primary-foreground rounded-[60px] p-16 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent)]" />
           <ScrollFadeIn>
-            <h2 className="text-4xl md:text-5xl font-display font-bold mb-8 leading-tight">Ready to increase your <br />engagement by 40%?</h2>
+            <h2 className="text-4xl md:text-5xl font-display font-bold mb-8 leading-tight text-white">Ready to increase your <br />engagement by 40%?</h2>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="secondary" size="lg" className="h-16 px-10 rounded-2xl text-md font-bold" asChild>
                 <Link to="/signup text-primary">Get Your Free Links</Link>
@@ -143,7 +143,7 @@ const LandingPage = () => {
           </div>
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">© 2025 TapOpen Inc. • Every Tap. Native App.</p>
           <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <Link to="/pricing" className="hover:text-primary">Pricing</Link>
+
             <a href="#" className="hover:text-primary">Terms</a>
             <a href="#" className="hover:text-primary">Privacy</a>
           </div>

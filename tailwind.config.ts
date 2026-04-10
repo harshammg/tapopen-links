@@ -95,6 +95,10 @@ export default {
           "0%": { "stroke-dashoffset": "1000" },
           "100%": { "stroke-dashoffset": "0" },
         },
+        "progress": {
+          "0%": { transform: "scaleX(0)" },
+          "100%": { transform: "scaleX(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -102,6 +106,7 @@ export default {
         "fade-in-up": "fade-in-up 0.6s ease-out forwards",
         "count-up": "count-up 0.5s ease-out forwards",
         "slide-in-right": "slide-in-right 0.3s ease-out",
+        "progress-fast": "progress 2s linear infinite",
       },
     },
   },

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const RedirectHandler = () => {
   const { slug } = useParams();
@@ -59,27 +60,40 @@ const RedirectHandler = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#00247d] text-white flex flex-col items-center justify-center p-6 text-center font-sans tracking-tight">
-      <div className="animate-pulse mb-10">
-        <Zap className="h-20 w-20 text-[#f59e0b] shadow-glow" />
-      </div>
-      <h2 className="text-4xl font-display font-bold mb-3 tracking-tighter">Opening App...</h2>
-      <p className="text-white/80 font-medium max-w-xs mx-auto">We're bypassing the in-app browser for a better experience.</p>
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+      {/* Background Glows */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10" />
       
-      <div className="mt-12 flex space-x-3">
-        <div className="w-3 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
-        <div className="w-3 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
-        <div className="w-3 h-3 bg-white rounded-full animate-bounce" />
-      </div>
+      <div className="max-w-md w-full animate-in fade-in zoom-in duration-700">
+        <h2 className="text-5xl md:text-6xl font-display font-bold mb-6 tracking-tighter gradient-text">Opening App</h2>
+        <p className="text-slate-400 text-lg font-medium mb-12">Redirecting you to the native application for a seamless experience...</p>
+        
+        {/* Loading Bar */}
+        <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden mb-12">
+          <div className="h-full bg-primary animate-progress-fast w-full origin-left" />
+        </div>
 
-      <div className="mt-16 pt-12 border-t border-white/10 w-full max-w-sm">
-        <p className="text-xs text-white/50 mb-4 lowercase tracking-widest font-bold">Taking too long?</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl font-bold text-sm transition-all border border-white/10"
-        >
-          Retry Redirect
-        </button>
+        <div className="flex flex-col gap-4">
+          <Button 
+            variant="ghost" 
+            className="text-slate-400 hover:text-white"
+            onClick={() => window.history.back()}
+          >
+            Wait, take me back
+          </Button>
+          
+          <div className="pt-8 border-t border-slate-900">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-4">Taking too long?</p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="rounded-xl border-slate-800 text-slate-400 hover:text-white"
+              onClick={() => window.location.reload()}
+            >
+              Retry Redirect
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
