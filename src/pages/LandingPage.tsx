@@ -155,6 +155,10 @@ const LandingPage = () => {
               </Button>
             </div>
             <p className="mt-6 md:mt-8 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">No credit card required for free tier</p>
+            <div className="mt-4 flex items-center justify-center gap-2 opacity-60">
+              <AlertCircle className="h-3 w-3 md:h-4 md:w-4" />
+              <p className="text-[9px] md:text-xs font-bold uppercase tracking-widest">Links expire after 28 days of inactivity</p>
+            </div>
           </ScrollFadeIn>
         </div>
       </section>

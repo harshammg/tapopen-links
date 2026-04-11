@@ -109,6 +109,7 @@ const RedirectHandler = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [targetUrl, setTargetUrl] = useState<string | null>(null);
+  const [platform, setPlatform] = useState<string | null>(null);
   const [needsManualOpen, setNeedsManualOpen] = useState(false);
 
   useEffect(() => {
@@ -132,8 +133,13 @@ const RedirectHandler = () => {
           return;
         }
 
-        // Increment click count (fire & forget)
-        supabase.from("links").update({ clicks: data.clicks + 1 }).eq("slug", slug);
+        setPlatform(data.platform);
+
+        // Increment click count and update last_accessed_at (fire & forget)
+        supabase.from("links").update({ 
+          clicks: (data.clicks || 0) + 1, 
+          last_accessed_at: new Date().toISOString() 
+        }).eq("slug", slug).then();
 
         const url = data.original_url;
         setTargetUrl(url);
@@ -229,16 +235,30 @@ const RedirectHandler = () => {
   // ── Default Loading Screen ──────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -z-10" />
       
-      <div className="max-w-md w-full animate-in fade-in zoom-in duration-700">
-        <h2 className="text-5xl md:text-6xl font-display font-bold mb-6 tracking-tighter gradient-text">Opening App</h2>
-        <p className="text-slate-400 text-lg font-medium mb-12">Bypassing the in-app browser and launching the native app...</p>
-        
-        <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden mb-12">
-          <div className="h-full bg-primary animate-progress-fast w-full origin-left" />
+      <div className="max-w-md w-full animate-in fade-in zoom-in slide-in-from-bottom-10 duration-1000">
+        <div className="mb-10 relative">
+          <div className="w-24 h-24 bg-primary/20 rounded-[32px] flex items-center justify-center mx-auto relative z-10 animate-pulse">
+            <Zap className="h-10 w-10 text-primary" />
+          </div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-pulse" />
         </div>
 
+        <h2 className="text-4xl md:text-5xl font-display font-bold mb-4 tracking-tighter gradient-text">
+          Opening App
+        </h2>
+        <p className="text-slate-400 text-base md:text-lg font-medium mb-12 opacity-80">
+          Connecting you directly to the native experience...
+        </p>
+        
+        <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden relative">
+          <div className="h-full bg-primary animate-progress-fast w-full origin-left" />
+        </div>
+      </div>
+
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-600">Powered by TapOpen</p>
       </div>
     </div>
   );

@@ -4,12 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Zap, Mail, Lock, ArrowRight, Check, User, Layout } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { ChevronDown } from "lucide-react";
+
+const COUNTRY_CODES = [
+  { code: "+91", country: "India", flag: "🇮🇳" },
+  { code: "+1", country: "USA", flag: "🇺🇸" },
+  { code: "+44", country: "UK", flag: "🇬🇧" },
+  { code: "+971", country: "UAE", flag: "🇦🇪" },
+  { code: "+92", country: "Pakistan", flag: "🇵🇰" },
+  { code: "+880", country: "Bangladesh", flag: "🇧🇩" },
+  { code: "+966", country: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+234", country: "Nigeria", flag: "🇳🇬" },
+];
 
 const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [whatsappNo, setWhatsappNo] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -41,6 +55,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
             data: {
               full_name: fullName,
               handle: username.toLowerCase().replace(/\s+/g, ""),
+              whatsapp_no: `${countryCode}${whatsappNo}`,
             }
           }
         });
@@ -53,7 +68,8 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
             id: authData.user.id,
             full_name: fullName,
             handle: username.toLowerCase().replace(/\s+/g, ""),
-            email: emailOrUsername
+            email: emailOrUsername,
+            whatsapp_no: `${countryCode}${whatsappNo}`
           }, { onConflict: 'id' });
         }
 
@@ -201,6 +217,38 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
               />
             </div>
           </div>
+
+          {mode === "signup" && (
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">WhatsApp Number</label>
+              <div className="flex gap-2">
+                <div className="relative shrink-0">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="appearance-none bg-background border border-border focus:border-primary rounded-xl pl-4 pr-10 py-3.5 text-sm transition-all focus:outline-none cursor-pointer"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.code}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
+                <div className="relative flex-1">
+                  <input
+                    type="tel"
+                    required
+                    placeholder="9876543210"
+                    value={whatsappNo}
+                    onChange={(e) => setWhatsappNo(e.target.value)}
+                    className="w-full bg-background border border-border focus:border-primary rounded-xl px-4 py-3.5 text-sm transition-all focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <Button type="submit" className="w-full h-14 text-md font-bold" variant="gradient" disabled={isLoading}>
             {isLoading ? "Processing..." : (mode === "login" ? "Sign In" : "Get Started")}
