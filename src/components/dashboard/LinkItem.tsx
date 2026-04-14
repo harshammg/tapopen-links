@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, Share2, ArrowRight, Trash2, QrCode, Pencil } from "lucide-react";
+import { Copy, Check, Share2, ArrowRight, Trash2, QrCode, Pencil, Eye } from "lucide-react";
 import { Link as LinkType } from "@/types";
 
 interface LinkItemProps {
@@ -30,6 +30,17 @@ const LinkItem: React.FC<LinkItemProps> = ({
           {link.platform}
         </span>
         <div className="flex items-center gap-2">
+          <a
+            href={`${window.location.origin}/${link.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 bg-muted/40 hover:bg-muted/60 px-2.5 py-1 rounded-lg transition-all group/preview"
+            title="Preview Link"
+          >
+            <Eye className="h-3 w-3 text-muted-foreground group-hover/preview:text-primary transition-colors" />
+            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Preview</span>
+          </a>
+          
           <button
             onClick={() => onAnalytics(link)}
             className="flex items-center gap-1 bg-muted/30 px-2.5 py-1 rounded-lg hover:bg-muted/50 transition-colors group/clicks"
