@@ -148,6 +148,22 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {mode === "signup" && (
+            <Link to="/auth/login" className="block">
+              <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold border-primary/20 text-primary hover:bg-primary/5">
+                Already have an account? Log In
+              </Button>
+            </Link>
+          )}
+
+          {mode === "login" && (
+            <Link to="/auth/signup" className="block">
+              <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold border-primary/20 text-primary hover:bg-primary/5">
+                Don't have an account? Sign Up
+              </Button>
+            </Link>
+          )}
+
+          {mode === "signup" && (
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Unique Username</label>
               <div className="relative">

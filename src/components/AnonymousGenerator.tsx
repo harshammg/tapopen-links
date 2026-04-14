@@ -101,7 +101,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-card border-2 border-primary/20 rounded-[32px] p-2 shadow-2xl overflow-hidden relative group">
-        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
+        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity -z-10 pointer-events-none" />
         
         <div className="flex flex-col md:flex-row gap-2">
           <div className="flex-1 relative">
@@ -110,7 +110,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
               placeholder="Paste your social link here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full h-14 md:h-16 bg-transparent border-none focus:ring-0 focus:outline-none px-6 text-base md:text-lg font-medium placeholder:text-muted-foreground/50"
+              className="w-full h-14 md:h-16 bg-transparent border-none focus:ring-0 focus:outline-none pl-6 pr-16 text-base md:text-lg font-medium placeholder:text-muted-foreground/50"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <button 

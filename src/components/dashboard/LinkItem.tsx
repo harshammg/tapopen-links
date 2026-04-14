@@ -90,7 +90,22 @@ const LinkItem: React.FC<LinkItemProps> = ({
           <Button
             variant="outline"
             className="flex-1 h-10 px-3 rounded-xl font-bold text-[11px] md:text-xs bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary flex items-center justify-center"
-            onClick={() => onShare({ slug: link.slug, platform: link.platform })}
+            onClick={async () => {
+              const shareUrl = `${window.location.origin}/${link.slug}`;
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: `TapOpen Redirect`,
+                    text: `Check out my ${link.platform} link!`,
+                    url: shareUrl,
+                  });
+                } catch (err) {
+                  console.error("Share failed:", err);
+                }
+              } else {
+                onCopy(link.slug);
+              }
+            }}
           >
             <Share2 className="h-3.5 w-3.5 mr-1.5" /> Share
           </Button>
