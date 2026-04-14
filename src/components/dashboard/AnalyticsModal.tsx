@@ -36,7 +36,7 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, link }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl rounded-3xl p-0 overflow-hidden">
+      <DialogContent hideClose className="sm:max-w-md bg-card border-border shadow-2xl rounded-3xl p-0 overflow-hidden">
         <div className="bg-primary/5 p-6 border-b border-border">
           <DialogHeader className="flex flex-row items-center justify-between space-y-0 text-left">
             <div>
