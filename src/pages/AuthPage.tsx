@@ -29,11 +29,23 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
   useEffect(() => {
     if (!supabase) return;
+
     const checkSession = async () => {
+      // Don't auto-redirect if Supabase is still parsing the OAuth URL hash
+      if (window.location.hash.includes('access_token')) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session) navigate("/dashboard");
     };
     checkSession();
+
+    // Listen for OAuth completion
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && event === 'SIGNED_IN') {
+        navigate("/dashboard");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,6 +54,27 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     if (!supabase) {
       toast.error("Supabase is not configured. Please check your .env keys.");
       return;
+    }
+
+    // Add comprehensive validation for manual signups
+    if (mode === "signup") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailOrUsername)) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_~\-]).{8,}$/;
+      if (!passwordRegex.test(password)) {
+        toast.error("Password must be at least 8 characters, include an uppercase letter, a lowercase letter, and a special character.");
+        return;
+      }
+
+      const phoneRegex = /^\d{6,15}$/;
+      if (!phoneRegex.test(whatsappNo.replace(/\s+/g, ''))) {
+        toast.error("Please enter a valid phone number (6-15 digits, numbers only).");
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -122,6 +155,41 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || "Google Sign In failed");
+    }
+  };
+
+  const handleForgotPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!emailOrUsername || !emailOrUsername.includes('@')) {
+      toast.error("Please enter your email address in the field above to receive a reset link.");
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailOrUsername, {
+        redirectTo: `${window.location.origin}/dashboard/settings#security`,
+      });
+      if (error) throw error;
+      toast.success("Password reset instructions sent! Check your inbox.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reset email");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4 relative overflow-hidden">
@@ -147,21 +215,28 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {mode === "signup" && (
-            <Link to="/auth/login" className="block">
-              <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold border-primary/20 text-primary hover:bg-primary/5">
-                Already have an account? Log In
-              </Button>
-            </Link>
-          )}
 
-          {mode === "login" && (
-            <Link to="/auth/signup" className="block">
-              <Button type="button" variant="outline" className="w-full h-12 rounded-xl font-bold border-primary/20 text-primary hover:bg-primary/5">
-                Don't have an account? Sign Up
-              </Button>
-            </Link>
-          )}
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full h-14 rounded-xl font-bold text-sm bg-background hover:bg-muted transition-colors flex items-center justify-center gap-2"
+            onClick={handleGoogleLogin}
+          >
+            <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true" focusable="false">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+            </svg>
+            Continue with Google
+          </Button>
+
+          <div className="flex items-center gap-4 py-2">
+            <div className="h-px bg-border flex-1" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or</span>
+            <div className="h-px bg-border flex-1" />
+          </div>
 
           {mode === "signup" && (
             <div className="space-y-1.5">
@@ -218,7 +293,14 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
             <div className="flex justify-between items-center ml-1">
               <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Password</label>
               {mode === "login" && (
-                <Link to="#" className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline">Forgot?</Link>
+                <button 
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isLoading}
+                  className="text-[10px] font-bold text-primary uppercase tracking-wider hover:underline disabled:opacity-50"
+                >
+                  Forgot?
+                </button>
               )}
             </div>
             <div className="relative">

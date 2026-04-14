@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Layout, BarChart3, QrCode, Settings, LogOut, Zap, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import OnboardingModal from "./dashboard/OnboardingModal";
 
 const navItems = [
   { label: "Quick Link", icon: Zap, path: "/dashboard" },
@@ -13,38 +14,55 @@ const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [userName, setUserName] = useState("User");
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     if (!supabase) return;
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        navigate("/auth/login");
-      }
-    });
+    let isMounted = true;
 
     const fetchUserData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session) {
+        // Essential fix for OAuth: Don't bounce if Supabase is still parsing the URL hash!
+        if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
+          return;
+        }
         navigate("/auth/login");
         return;
       }
 
-      const { data: profile } = await supabase
+      setCurrentUser(session.user);
+
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("full_name, handle")
         .eq("id", session.user.id)
         .single();
       
-      if (profile) {
-        setUserName(profile.full_name || profile.handle || session.user.email?.split("@")[0] || "User");
-      } else {
-        setUserName(session.user.email?.split("@")[0] || "User");
+      if (error || !profile || !profile.handle) {
+        setShowOnboarding(true);
+        return;
       }
+
+      if (isMounted) setUserName(profile.full_name || profile.handle || session.user.email?.split("@")[0] || "User");
     };
 
     fetchUserData();
-    return () => subscription.unsubscribe();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        navigate("/auth/login");
+      } else if (event === 'SIGNED_IN' && session) {
+        fetchUserData();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -94,6 +112,15 @@ const DashboardLayout = () => {
           );
         })}
       </div>
+
+      <OnboardingModal 
+        isOpen={showOnboarding} 
+        user={currentUser} 
+        onSuccess={() => {
+          setShowOnboarding(false);
+          window.location.reload(); // Refresh fully to load new handle state globally
+        }} 
+      />
     </div>
   );
 };
