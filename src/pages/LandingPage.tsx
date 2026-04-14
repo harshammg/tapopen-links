@@ -5,6 +5,8 @@ import { ArrowRight, Smartphone, Zap, ClipboardPaste, Share2, Shield, Globe, Loc
 import { platforms } from "@/lib/data";
 import { ScrollFadeIn } from "@/components/ScrollFadeIn";
 import { supabase } from "@/lib/supabase";
+import AnonymousGenerator from "@/components/AnonymousGenerator";
+
 
 const LandingPage = () => {
   const [session, setSession] = useState<any>(null);
@@ -54,7 +56,7 @@ const LandingPage = () => {
           </ScrollFadeIn>
           <ScrollFadeIn delay={100}>
             <h1 className="text-5xl md:text-8xl font-display font-bold mb-6 md:mb-8 leading-[0.9] tracking-tighter">
-              Bypass the <br /><span className="gradient-text">In-App Browser.</span>
+              Create your <br /><span className="gradient-text">TapOpen URL.</span>
             </h1>
           </ScrollFadeIn>
           <ScrollFadeIn delay={200}>
@@ -63,14 +65,11 @@ const LandingPage = () => {
             </p>
           </ScrollFadeIn>
           <ScrollFadeIn delay={300}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="gradient" size="lg" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl text-md font-bold shadow-xl shadow-primary/20" asChild>
-                <Link to={session ? "/dashboard" : "/auth/signup"}>
-                  {session ? "Go to Dashboard" : "Create Your First Deep Link"}
-                </Link>
-              </Button>
+            <div className="mt-4">
+              <AnonymousGenerator session={session} />
             </div>
           </ScrollFadeIn>
+
         </div>
       </section>
 

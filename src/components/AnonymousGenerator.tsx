@@ -1,0 +1,214 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { 
+  Zap, 
+  ArrowRight, 
+  Link2, 
+  ClipboardPaste,
+  Loader2
+} from "lucide-react";
+import { toast } from "sonner";
+import { 
+  cleanUrl, 
+  getPlatform 
+} from "@/lib/utils";
+import { platforms } from "@/lib/data";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase";
+import { linkService } from "@/services/linkService";
+import { nanoid } from "nanoid";
+
+const AnonymousGenerator = ({ session }: { session: any }) => {
+  const [url, setUrl] = useState("");
+  const [customSlug, setCustomSlug] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isNamingModalOpen, setIsNamingModalOpen] = useState(false);
+  const [tempPlatformName, setTempPlatformName] = useState("");
+
+  const navigate = useNavigate();
+
+  const detectedPlatform = platforms.find(p => p.name.toLowerCase() === getPlatform(url).toLowerCase());
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setUrl(text);
+        toast.success("Link pasted!");
+      }
+    } catch (err) {
+      toast.error("Failed to read clipboard.");
+    }
+  };
+
+  const handleGenerateClick = () => {
+    if (!url) return;
+    
+    const cleaned = cleanUrl(url);
+    if (cleaned !== url) {
+      setUrl(cleaned);
+    }
+
+    const detected = getPlatform(cleaned);
+    setTempPlatformName(detected === "Unknown" ? "" : detected);
+    setIsNamingModalOpen(true);
+  };
+
+  const handleFinalAction = async () => {
+    setIsNamingModalOpen(false);
+    
+    const linkData = {
+      original_url: url,
+      platform: tempPlatformName.trim() || "App",
+      slug: customSlug.trim() ? customSlug.trim().toLowerCase().replace(/\s+/g, '-') : nanoid(8),
+      created_at: new Date().toISOString()
+    };
+
+
+    if (!session) {
+      // THE HOOK: Save to localStorage and redirect
+      localStorage.setItem("pending_tapopen_link", JSON.stringify(linkData));
+      toast.info("Step 1 Complete! Claim your link to activate it.");
+      navigate("/auth/signup");
+    } else {
+      // Logged in: Save immediately
+      setIsGenerating(true);
+      try {
+        await linkService.createLink({
+          ...linkData,
+          user_id: session.user.id
+        });
+        toast.success("Link active! Redirecting to dashboard...");
+        navigate("/dashboard");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to save link");
+      } finally {
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="bg-card border-2 border-primary/20 rounded-[32px] p-2 shadow-2xl overflow-hidden relative group">
+        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
+        
+        <div className="flex flex-col md:flex-row gap-2">
+          <div className="flex-1 relative">
+            <input
+              type="url"
+              placeholder="Paste your social link here..."
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full h-14 md:h-16 bg-transparent border-none focus:ring-0 focus:outline-none px-6 text-base md:text-lg font-medium placeholder:text-muted-foreground/50"
+            />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <button 
+                onClick={handlePaste}
+                className="p-2 hover:bg-primary/10 rounded-xl transition-colors text-muted-foreground hover:text-primary"
+                title="Paste"
+              >
+                <ClipboardPaste className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+          
+          <Button 
+            variant="gradient" 
+            size="lg" 
+            className="h-14 md:h-16 px-8 rounded-[24px] text-base font-bold shadow-lg"
+            onClick={handleGenerateClick}
+            disabled={!url || isGenerating}
+          >
+            {isGenerating ? <Loader2 className="h-5 w-5 animate-spin" /> : "Create Link"}
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      <p className="mt-4 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground opacity-60">
+        Supports YouTube, Instagram, Spotify, and more.
+      </p>
+
+      {/* Naming Modal */}
+      <Dialog open={isNamingModalOpen} onOpenChange={setIsNamingModalOpen}>
+        <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl rounded-3xl p-0 overflow-hidden">
+          <div className="bg-primary/5 p-6 border-b border-border text-center">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-display font-bold">Name Your Link</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                This name appears on the redirect loading screen.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="p-8 space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="platform-name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                Display Name
+              </Label>
+              <Input
+                id="platform-name"
+                placeholder={detectedPlatform ? detectedPlatform.name : "e.g. My Channel, Portfolio"}
+                value={tempPlatformName}
+                onChange={(e) => setTempPlatformName(e.target.value)}
+                className="h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base"
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center ml-1">
+                <Label htmlFor="custom-slug" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  Custom Alias (Optional)
+                </Label>
+                <span className="text-[10px] text-primary font-bold uppercase tracking-wider">tapopen.online/</span>
+              </div>
+              <Input
+                id="custom-slug"
+                placeholder="my-link"
+                value={customSlug}
+                onChange={(e) => setCustomSlug(e.target.value)}
+                className="h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base"
+              />
+            </div>
+
+
+            <DialogFooter className="flex flex-col sm:flex-row gap-3">
+              <Button 
+                type="button" 
+                variant="gradient" 
+                className="flex-[2] h-12 rounded-xl font-bold"
+                onClick={handleFinalAction}
+              >
+                {session ? "Create & Save" : "Claim & Activate Link"}
+              </Button>
+              {!session && (
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  className="flex-1 h-12 rounded-xl font-bold"
+                  onClick={handleFinalAction}
+                >
+                  Skip
+                </Button>
+              )}
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AnonymousGenerator;
