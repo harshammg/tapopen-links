@@ -117,17 +117,23 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, slug, platform
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl rounded-3xl overflow-hidden p-0 gap-0">
+      <DialogContent 
+        hideClose 
+        className="fixed bottom-0 top-auto left-0 right-0 translate-y-0 translate-x-0 w-full rounded-t-[40px] rounded-b-none sm:rounded-[32px] sm:relative sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:w-[94%] sm:max-w-md bg-card border-border shadow-2xl overflow-hidden p-0 gap-0 animate-in slide-in-from-bottom duration-500 sm:zoom-in-95"
+      >
+        {/* Mobile Pull Handle */}
+        <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mt-4 mb-2 sm:hidden opacity-40" />
+
         <div className="bg-primary/5 p-6 border-b border-border text-center">
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-2xl font-display font-bold">Share Your Link</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Boost your {platform} profile with direct redirects
+              Direct redirects for your {platform} profile
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="p-8 space-y-8">
+        <div className="p-6 md:p-8 space-y-8">
           {/* QR Code Section */}
           <div className="flex flex-col items-center justify-center space-y-4">
             <motion.div 
