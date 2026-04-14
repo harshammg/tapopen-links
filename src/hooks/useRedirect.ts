@@ -22,16 +22,23 @@ export const useRedirect = (slug: string | undefined) => {
 
       try {
         const data = await linkService.getLinkBySlug(slug);
-        setLink(data);
+        let url = data.original_url;
+        if (!/^https?:\/\//i.test(url)) {
+          url = 'https://' + url;
+        }
+
+        setLink({ ...data, original_url: url });
 
         // Tracking (background)
         linkService.recordClick(slug, data.clicks, data.clicks_daily || {}).catch(console.error);
 
-        const url = data.original_url;
-
         // Redirect Logic
         if (isInInstagram() && isAndroid()) {
           window.location.href = toAndroidIntent(url);
+          setTimeout(() => {
+            setNeedsManualOpen(true);
+            setIsProcessing(false);
+          }, 2000);
           return;
         }
 
@@ -57,6 +64,10 @@ export const useRedirect = (slug: string | undefined) => {
         if (isInAppBrowser()) {
           if (isAndroid()) {
             window.location.href = toAndroidIntent(url);
+            setTimeout(() => {
+              setNeedsManualOpen(true);
+              setIsProcessing(false);
+            }, 2000);
           } else {
             setNeedsManualOpen(true);
             setIsProcessing(false);

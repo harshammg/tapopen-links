@@ -17,7 +17,8 @@ export const isIOS     = () => /iphone|ipad|ipod/.test(ua);
  */
 export const toAppScheme = (url: string): string | null => {
   try {
-    const u = new URL(url);
+    const validUrl = !/^https?:\/\//i.test(url) ? 'https://' + url : url;
+    const u = new URL(validUrl);
     const host = u.hostname.replace("www.", "");
 
     if (host.includes("youtube.com") || host.includes("youtu.be")) {
@@ -68,7 +69,8 @@ export const toAppScheme = (url: string): string | null => {
  */
 export const toAndroidIntent = (url: string): string => {
   try {
-    const u = new URL(url);
+    const validUrl = !/^https?:\/\//i.test(url) ? 'https://' + url : url;
+    const u = new URL(validUrl);
     const host = u.hostname.replace("www.", "");
     
     let pkg = null;
@@ -91,7 +93,8 @@ export const toAndroidIntent = (url: string): string => {
 
     if (!pkg) pkg = "com.android.chrome";
 
-    return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.replace(":", "")};package=${pkg};end`;
+    const encodedFallback = encodeURIComponent(validUrl);
+    return `intent://${u.host}${u.pathname}${u.search}#Intent;scheme=${u.protocol.replace(":", "")};package=${pkg};S.browser_fallback_url=${encodedFallback};end`;
 
   } catch (_) {}
   return url;

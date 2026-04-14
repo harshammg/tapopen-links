@@ -9,14 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  Twitter,
-  Linkedin,
-  MessageCircle,
   Copy,
   Download,
   Share2,
   Check,
-  Send,
   X
 } from "lucide-react";
 import { toast } from "sonner";
@@ -72,32 +68,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, slug, platform
     img.src = "data:image/svg+xml;base64," + btoa(svgData);
   };
 
-  const shareActions = [
-    {
-      name: "WhatsApp",
-      icon: MessageCircle,
-      color: "bg-[#25D366]",
-      action: () => window.open(`https://wa.me/?text=Check out my ${platform} link: ${shareUrl}`, "_blank")
-    },
-    {
-      name: "Twitter",
-      icon: Twitter,
-      color: "bg-[#1DA1F2]",
-      action: () => window.open(`https://twitter.com/intent/tweet?text=Check out my ${platform} link:&url=${shareUrl}`, "_blank")
-    },
-    {
-      name: "LinkedIn",
-      icon: Linkedin,
-      color: "bg-[#0A66C2]",
-      action: () => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}`, "_blank")
-    },
-    {
-      name: "Telegram",
-      icon: Send,
-      color: "bg-[#0088CC]",
-      action: () => window.open(`https://t.me/share/url?url=${shareUrl}&text=Check out my ${platform} link`, "_blank")
-    }
-  ];
+
 
   const handleNativeShare = async () => {
     if (navigator.share) {
@@ -117,23 +88,17 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, slug, platform
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        hideClose 
-        className="fixed bottom-0 top-auto left-0 right-0 translate-y-0 translate-x-0 w-full rounded-t-[40px] rounded-b-none sm:rounded-[32px] sm:relative sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:w-[94%] sm:max-w-md bg-card border-border shadow-2xl overflow-hidden p-0 gap-0 animate-in slide-in-from-bottom duration-500 sm:zoom-in-95"
-      >
-        {/* Mobile Pull Handle */}
-        <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mt-4 mb-2 sm:hidden opacity-40" />
-
+      <DialogContent className="sm:max-w-md bg-card border-border shadow-2xl rounded-3xl overflow-hidden p-0 gap-0">
         <div className="bg-primary/5 p-6 border-b border-border text-center">
           <DialogHeader className="space-y-1">
             <DialogTitle className="text-2xl font-display font-bold">Share Your Link</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Direct redirects for your {platform} profile
+              Boost your {platform} profile with direct redirects
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="p-6 md:p-8 space-y-8">
+        <div className="p-8 space-y-8">
           {/* QR Code Section */}
           <div className="flex flex-col items-center justify-center space-y-4">
             <motion.div 
@@ -168,21 +133,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, slug, platform
             </Button>
           </div>
 
-          {/* Social Grid */}
-          <div className="grid grid-cols-4 gap-4">
-            {shareActions.map((item) => (
-              <button
-                key={item.name}
-                onClick={item.action}
-                className="flex flex-col items-center gap-2 group transition-all"
-              >
-                <div className={`${item.color} p-3 rounded-2xl text-white shadow-lg group-hover:scale-110 group-active:scale-95 transition-all`}>
-                  <item.icon className="h-6 w-6" />
-                </div>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.name}</span>
-              </button>
-            ))}
-          </div>
+
 
           {/* URL Bar */}
           <div className="space-y-3 pt-2">
