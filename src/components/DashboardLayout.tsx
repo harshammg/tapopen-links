@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Layout, BarChart3, QrCode, Settings, LogOut, Zap, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import OnboardingModal from "./dashboard/OnboardingModal";
 
 const navItems = [
   { label: "Quick Link", icon: Zap, path: "/dashboard" },
@@ -14,8 +13,6 @@ const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [userName, setUserName] = useState("User");
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     if (!supabase) return;
@@ -41,8 +38,8 @@ const DashboardLayout = () => {
         .eq("id", session.user.id)
         .single();
       
-      if (error || !profile || !profile.handle) {
-        setShowOnboarding(true);
+      if (!profile || !profile.handle) {
+        navigate("/auth/login");
         return;
       }
 
@@ -112,15 +109,6 @@ const DashboardLayout = () => {
           );
         })}
       </div>
-
-      <OnboardingModal 
-        isOpen={showOnboarding} 
-        user={currentUser} 
-        onSuccess={() => {
-          setShowOnboarding(false);
-          window.location.reload(); // Refresh fully to load new handle state globally
-        }} 
-      />
     </div>
   );
 };
