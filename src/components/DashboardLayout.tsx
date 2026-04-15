@@ -25,8 +25,13 @@ const DashboardLayout = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        // Essential fix for OAuth: Don't bounce if Supabase is still parsing the URL hash!
-        if (window.location.hash.includes('access_token') || window.location.hash.includes('type=recovery')) {
+        // Essential fix for OAuth: Don't bounce if Supabase is still parsing the URL hash or query params!
+        if (
+          window.location.hash.includes('access_token') || 
+          window.location.search.includes('code=') || 
+          window.location.search.includes('error=') ||
+          window.location.hash.includes('type=recovery')
+        ) {
           return;
         }
         navigate("/auth/login");

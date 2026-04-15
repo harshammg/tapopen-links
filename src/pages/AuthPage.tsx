@@ -30,7 +30,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
   useEffect(() => {
     if (!supabase) return;
     const checkSession = async () => {
-      if (window.location.hash.includes('access_token')) return;
+      if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session) navigate("/dashboard");
     };
