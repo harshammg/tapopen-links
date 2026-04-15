@@ -157,10 +157,25 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
   const handleGoogleLogin = async () => {
     try {
+      // Always use a stable redirect URL regardless of whether the user is on
+      // a mobile device accessing via LAN IP or desktop via localhost.
+      // This prevents "redirect_uri_mismatch" errors on mobile.
+      const isLocalDev = window.location.hostname !== 'localhost' && 
+                         !window.location.hostname.includes('netlify') &&
+                         !window.location.hostname.includes('vercel');
+      
+      const redirectUrl = isLocalDev 
+        ? `http://localhost:8080/dashboard`  // Force localhost for LAN IP access
+        : `${window.location.origin}/dashboard`;  // Use actual origin in production
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
       if (error) throw error;
