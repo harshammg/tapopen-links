@@ -10,7 +10,7 @@ interface LinkGeneratorFormProps {
   setCustomSlug: (slug: string) => void;
   isGenerating: boolean;
   onPaste: () => void;
-  onGenerate: () => void;
+  onGenerate: (skip?: boolean) => void;
   detectedPlatform?: PlatformConfig;
   aliasError?: string | null;
   setAliasError?: (err: string | null) => void;
@@ -92,13 +92,12 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
           className="w-full h-14 text-base font-bold"
           variant="gradient"
           disabled={!url || isGenerating}
-          onClick={async () => {
+          onClick={() => {
             if (aliasError) {
               setCustomSlug("");
               if (setAliasError) setAliasError(null);
-              requestAnimationFrame(() => {
-                onGenerate();
-              });
+              // One-click skip: directly trigger the gen logic with the skip flag
+              onGenerate(true);
             } else {
               onGenerate();
             }

@@ -39,7 +39,7 @@ const QuickLinkGenerator = () => {
   const [selectedLink, setSelectedLink] = useState<LinkType | null>(null);
 
   // ── Actions ─────────────────────────────────────────────────────────────────
-  const handleGenerateClick = () => {
+  const handleGenerateClick = (skip?: boolean) => {
     if (!url) return;
     const cleaned = cleanUrl(url);
     if (cleaned !== url) {
@@ -48,17 +48,22 @@ const QuickLinkGenerator = () => {
     }
     const detected = getPlatform(cleaned);
     setTempPlatformName(detected === "Unknown" ? "" : detected);
-    setIsNamingModalOpen(true);
+    
+    if (skip) {
+      handleConfirmGenerate(true);
+    } else {
+      setIsNamingModalOpen(true);
+    }
   };
 
-  const handleConfirmGenerate = async () => {
+  const handleConfirmGenerate = async (skipAlias?: boolean) => {
     setAliasError(null);
-    let finalSlug = customSlug.trim().toLowerCase().replace(/\s+/g, '-');
+    let finalSlug = skipAlias === true ? "" : customSlug.trim().toLowerCase().replace(/\s+/g, '-');
     if (!finalSlug) finalSlug = nanoid(8);
     
     const result = await createLink({
       original_url: url,
-      platform: tempPlatformName.trim() || "App",
+      platform: tempPlatformName.trim() || (skipAlias ? (getPlatform(url) === "Unknown" ? "App" : getPlatform(url)) : "App"),
       slug: finalSlug,
     });
 

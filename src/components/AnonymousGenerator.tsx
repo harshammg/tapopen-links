@@ -65,9 +65,11 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
     setIsNamingModalOpen(true);
   };
 
-  const handleFinalAction = async () => {
+  const handleFinalAction = async (overrideSkip?: boolean) => {
     setAliasError(null);
-    const finalSlug = customSlug.trim() ? customSlug.trim().toLowerCase().replace(/\s+/g, '-') : nanoid(8);
+    const finalSlug = (overrideSkip !== true && customSlug.trim()) 
+      ? customSlug.trim().toLowerCase().replace(/\s+/g, '-') 
+      : nanoid(8);
     
     const linkData = {
       original_url: url,
@@ -220,13 +222,10 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                   type="button" 
                   variant="secondary" 
                   className="flex-1 h-12 rounded-xl font-bold"
-                  onClick={async () => {
+                  onClick={() => {
                     setCustomSlug("");
                     setAliasError(null);
-                    // Ensure state cycles through before proceeding
-                    requestAnimationFrame(() => {
-                      handleFinalAction();
-                    });
+                    handleFinalAction(true);
                   }}
                 >
                   {aliasError ? "Clear & Skip" : "Skip"}
