@@ -1,0 +1,10 @@
+name = "tapopen-links"
+# Use the account ID from your project logs
+# account_id = "262fe99e4d6a504af8a20c926aac56c3"
+compatibility_date = "2024-04-03"
+
+# This configuration tells Wrangler to deploy your 'dist' folder as a static site
+# It automatically respects your public/_redirects (which Vite copies to dist/_redirects)
+[assets]
+directory = "./dist"
+binding = "ASSETS"
