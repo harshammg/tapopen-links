@@ -8,6 +8,8 @@ export const useLinks = () => {
   const [links, setLinks] = useState<Link[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [newlyCreatedSlugs, setNewlyCreatedSlugs] = useState<string[]>([]);
+
   const fetchLinks = useCallback(async () => {
     if (!supabase) return;
     try {
@@ -47,6 +49,7 @@ export const useLinks = () => {
             user_id: session.user.id,
             clicks: 0
           });
+          setNewlyCreatedSlugs(prev => [...prev, pendingLink.slug]);
           toast.success("Successfully claimed your link!");
         } catch (err: any) {
           // If conflict, try to save with a unique slug
@@ -59,6 +62,7 @@ export const useLinks = () => {
               user_id: session.user.id,
               clicks: 0
             });
+            setNewlyCreatedSlugs(prev => [...prev, randomSlug]);
             toast.success("Linked claimed with a unique alias!");
           }
         }
@@ -83,6 +87,11 @@ export const useLinks = () => {
         user_id: session.user.id,
         clicks: 0
       });
+
+      if (linkData.slug) {
+        setNewlyCreatedSlugs(prev => [...prev, linkData.slug!]);
+      }
+
       toast.success("Link generated successfully!");
       fetchLinks();
       return { success: true };
@@ -133,6 +142,7 @@ export const useLinks = () => {
   return {
     links,
     isLoading,
+    newlyCreatedSlugs,
     fetchLinks,
     createLink,
     updateLink,

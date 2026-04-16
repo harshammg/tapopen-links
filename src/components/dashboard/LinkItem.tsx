@@ -11,6 +11,7 @@ interface LinkItemProps {
   onEdit: (link: LinkType) => void;
   onAnalytics: (link: LinkType) => void;
   onShare: (link: { slug: string; platform: string }) => void;
+  isNew?: boolean;
 }
 
 const LinkItem: React.FC<LinkItemProps> = ({ 
@@ -20,15 +21,23 @@ const LinkItem: React.FC<LinkItemProps> = ({
   onDelete, 
   onEdit, 
   onAnalytics, 
-  onShare 
+  onShare,
+  isNew
 }) => {
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 flex flex-col gap-3 hover:border-primary transition-all group/item">
+    <div className={`bg-card border ${isNew ? 'border-primary shadow-lg shadow-primary/5 ring-1 ring-primary/20' : 'border-border'} rounded-2xl p-4 flex flex-col gap-3 hover:border-primary transition-all group/item`}>
       {/* Platform badge + Clicks */}
       <div className="flex items-center justify-between">
-        <span className="bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">
-          {link.platform}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">
+            {link.platform}
+          </span>
+          {isNew && (
+            <span className="bg-primary text-primary-foreground text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md animate-pulse shadow-sm">
+              New
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <a
             href={`${window.location.origin}/${link.slug}`}

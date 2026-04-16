@@ -22,7 +22,7 @@ import EditLinkModal from "@/components/dashboard/EditLinkModal";
 import NamingModal from "@/components/dashboard/NamingModal";
 
 const QuickLinkGenerator = () => {
-  const { links, isLoading, createLink, updateLink, deleteLink, fetchLinks } = useLinks();
+  const { links, isLoading, newlyCreatedSlugs, createLink, updateLink, deleteLink, fetchLinks } = useLinks();
   
   // Local UI State
   const [url, setUrl] = useState("");
@@ -37,7 +37,8 @@ const QuickLinkGenerator = () => {
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState<LinkType | null>(null);
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
+  // ... (rest of the logic) ...
+
   const handleGenerateClick = (skip?: boolean) => {
     if (!url) return;
     const cleaned = cleanUrl(url);
@@ -151,6 +152,7 @@ const QuickLinkGenerator = () => {
                 key={link.slug}
                 link={link}
                 copied={copied}
+                isNew={newlyCreatedSlugs.includes(link.slug)}
                 onCopy={handleCopy}
                 onDelete={deleteLink}
                 onEdit={(link) => { setSelectedLink(link); setIsEditModalOpen(true); }}
