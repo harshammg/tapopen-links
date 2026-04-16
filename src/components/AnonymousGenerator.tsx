@@ -227,7 +227,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                     setTimeout(handleFinalAction, 0);
                   }}
                 >
-                  {aliasError ? "Clear & Proceed" : "Skip"}
+                  {aliasError ? "Clear & Skip" : "Skip"}
                 </Button>
               )}
             </DialogFooter>

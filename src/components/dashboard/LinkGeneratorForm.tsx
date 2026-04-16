@@ -103,7 +103,7 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
             }
           }}
         >
-          {isGenerating ? "Generating..." : aliasError ? "Clear & Proceed" : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
+          {isGenerating ? "Generating..." : aliasError ? "Clear & Skip" : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </div>
     </div>
