@@ -77,7 +77,19 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
               className={`flex-1 min-w-0 bg-background border ${aliasError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'} rounded-xl px-3 md:px-4 py-3 text-sm font-medium transition-all focus:outline-none`}
             />
           </div>
-          {aliasError && <p className="text-[10px] text-destructive font-bold uppercase tracking-tight ml-1">{aliasError}</p>}
+          {aliasError && (
+            <div className="flex flex-col gap-2 mt-1 animate-fade-in">
+              <p className="text-[10px] text-destructive font-bold uppercase tracking-tight ml-1">{aliasError}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-max h-8 text-[10px] font-bold border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-lg flex items-center gap-1.5"
+                onClick={() => onGenerate(true)}
+              >
+                <Zap className="h-3 w-3" /> Clear & Skip
+              </Button>
+            </div>
+          )}
         </div>
 
         {detectedPlatform && (
@@ -92,18 +104,9 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
           className="w-full h-14 text-base font-bold"
           variant="gradient"
           disabled={!url || isGenerating}
-          onClick={() => {
-            if (aliasError) {
-              setCustomSlug("");
-              if (setAliasError) setAliasError(null);
-              // One-click skip: directly trigger the gen logic with the skip flag
-              onGenerate(true);
-            } else {
-              onGenerate();
-            }
-          }}
+          onClick={() => onGenerate()}
         >
-          {isGenerating ? "Generating..." : aliasError ? "Clear & Skip" : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
+          {isGenerating ? "Generating..." : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </div>
     </div>
