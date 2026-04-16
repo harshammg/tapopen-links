@@ -4,6 +4,10 @@ import path from "path";
 
 
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
+
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   base: "/",
@@ -15,7 +19,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   envPrefix: ['VITE_', 'SUPABASE_'],
-  plugins: [react()],
+  plugins: [react(), cloudflare()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
