@@ -34,6 +34,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isNamingModalOpen, setIsNamingModalOpen] = useState(false);
   const [tempPlatformName, setTempPlatformName] = useState("");
+  const [aliasError, setAliasError] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -65,20 +66,35 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
   };
 
   const handleFinalAction = async () => {
-    setIsNamingModalOpen(false);
+    setAliasError(null);
+    const finalSlug = customSlug.trim() ? customSlug.trim().toLowerCase().replace(/\s+/g, '-') : nanoid(8);
     
     const linkData = {
       original_url: url,
       platform: tempPlatformName.trim() || "App",
-      slug: customSlug.trim() ? customSlug.trim().toLowerCase().replace(/\s+/g, '-') : nanoid(8),
+      slug: finalSlug,
       created_at: new Date().toISOString()
     };
 
-
     if (!session) {
-      // THE HOOK: Save to localStorage and redirect
+      // Check if alias exists before redirecting to signup
+      setIsGenerating(true);
+      try {
+        const exists = await linkService.getLinkBySlug(linkData.slug);
+        if (exists) {
+          setAliasError("This alias is already taken. Try another or leave blank for a random one.");
+          setIsGenerating(false);
+          return;
+        }
+      } catch (err) {
+        // Not found is good!
+      } finally {
+        setIsGenerating(false);
+      }
+
       localStorage.setItem("pending_tapopen_link", JSON.stringify(linkData));
       toast.info("Step 1 Complete! Claim your link to activate it.");
+      setIsNamingModalOpen(false);
       navigate("/auth/signup");
     } else {
       // Logged in: Save immediately
@@ -89,9 +105,14 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
           user_id: session.user.id
         });
         toast.success("Link active! Redirecting to dashboard...");
+        setIsNamingModalOpen(false);
         navigate("/dashboard");
       } catch (error: any) {
-        toast.error(error.message || "Failed to save link");
+        if (error?.code === '23505') {
+          setAliasError("Alias taken! Change it or click again with blank for random.");
+        } else {
+          toast.error(error.message || "Failed to save link");
+        }
       } finally {
         setIsGenerating(false);
       }
@@ -178,9 +199,10 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                 id="custom-slug"
                 placeholder="my-link"
                 value={customSlug}
-                onChange={(e) => setCustomSlug(e.target.value)}
-                className="h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base"
+                onChange={(e) => { setCustomSlug(e.target.value); setAliasError(null); }}
+                className={`h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base ${aliasError ? "border-destructive focus:ring-destructive" : ""}`}
               />
+              {aliasError && <p className="text-[10px] text-destructive font-bold uppercase tracking-tight ml-1">{aliasError}</p>}
             </div>
 
 

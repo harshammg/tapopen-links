@@ -38,14 +38,13 @@ export const useLinks = () => {
       });
       toast.success("Link generated successfully!");
       fetchLinks();
-      return true;
+      return { success: true };
     } catch (error: any) {
       if (error?.code === '23505') {
-        toast.error("This alias is already taken. Try another!");
-      } else {
-        toast.error(error.message || "Failed to generate link");
+        return { success: false, error: 'CONFLICT' };
       }
-      return false;
+      toast.error(error.message || "Failed to generate link");
+      return { success: false, error: 'OTHER' };
     } finally {
       setIsLoading(false);
     }

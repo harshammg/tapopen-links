@@ -12,6 +12,8 @@ interface LinkGeneratorFormProps {
   onPaste: () => void;
   onGenerate: () => void;
   detectedPlatform?: PlatformConfig;
+  aliasError?: string | null;
+  setAliasError?: (err: string | null) => void;
 }
 
 const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
@@ -22,7 +24,9 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
   isGenerating,
   onPaste,
   onGenerate,
-  detectedPlatform
+  detectedPlatform,
+  aliasError,
+  setAliasError
 }) => {
   return (
     <div className="bg-card border border-primary rounded-2xl p-5 md:p-8 shadow-sm relative overflow-hidden">
@@ -66,10 +70,14 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
               type="text"
               placeholder="my-cool-link"
               value={customSlug}
-              onChange={(e) => setCustomSlug(e.target.value)}
-              className="flex-1 min-w-0 bg-background border border-border focus:border-primary rounded-xl px-3 md:px-4 py-3 text-sm font-medium transition-all focus:outline-none"
+              onChange={(e) => {
+                setCustomSlug(e.target.value);
+                if (setAliasError) setAliasError(null);
+              }}
+              className={`flex-1 min-w-0 bg-background border ${aliasError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'} rounded-xl px-3 md:px-4 py-3 text-sm font-medium transition-all focus:outline-none`}
             />
           </div>
+          {aliasError && <p className="text-[10px] text-destructive font-bold uppercase tracking-tight ml-1">{aliasError}</p>}
         </div>
 
         {detectedPlatform && (

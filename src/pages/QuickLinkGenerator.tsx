@@ -30,6 +30,7 @@ const QuickLinkGenerator = () => {
   const [copied, setCopied] = useState<string | null>(null);
   const [activeShareLink, setActiveShareLink] = useState<{ slug: string, platform: string } | null>(null);
   const [tempPlatformName, setTempPlatformName] = useState("");
+  const [aliasError, setAliasError] = useState<string | null>(null);
   
   // Modal State
   const [isNamingModalOpen, setIsNamingModalOpen] = useState(false);
@@ -51,19 +52,23 @@ const QuickLinkGenerator = () => {
   };
 
   const handleConfirmGenerate = async () => {
-    setIsNamingModalOpen(false);
+    setAliasError(null);
     let finalSlug = customSlug.trim().toLowerCase().replace(/\s+/g, '-');
     if (!finalSlug) finalSlug = nanoid(8);
     
-    const success = await createLink({
+    const result = await createLink({
       original_url: url,
       platform: tempPlatformName.trim() || "App",
       slug: finalSlug,
     });
 
-    if (success) {
+    if (result.success) {
       setUrl("");
       setCustomSlug("");
+      setAliasError(null);
+      setIsNamingModalOpen(false);
+    } else if (result.error === 'CONFLICT') {
+      setAliasError("Alias taken! Try another or clear it for a random one.");
     }
   };
 
@@ -102,6 +107,8 @@ const QuickLinkGenerator = () => {
             onPaste={handlePaste}
             onGenerate={handleGenerateClick}
             detectedPlatform={detectedPlatform}
+            aliasError={aliasError}
+            setAliasError={setAliasError}
           />
         </div>
 
