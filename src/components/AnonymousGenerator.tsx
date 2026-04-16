@@ -205,16 +205,8 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                 className={`h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base ${aliasError ? "border-destructive focus:ring-destructive" : ""}`}
               />
               {aliasError && (
-                <div className="flex flex-col gap-2 mt-2 animate-fade-in">
+                <div className="mt-2 animate-fade-in">
                   <p className="text-[10px] text-destructive font-bold uppercase tracking-tight ml-1">{aliasError}</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-max h-8 text-[10px] font-bold border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-lg flex items-center gap-1.5"
-                    onClick={() => handleFinalAction(true)}
-                  >
-                    <Zap className="h-3 w-3" /> Clear & Skip
-                  </Button>
                 </div>
               )}
             </div>
@@ -235,9 +227,9 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                   type="button" 
                   variant="secondary" 
                   className="flex-1 h-12 rounded-xl font-bold"
-                  onClick={() => handleFinalAction()}
+                  onClick={() => handleFinalAction(aliasError ? true : false)}
                 >
-                  Skip
+                  {aliasError ? "Clear & Skip" : "Skip"}
                 </Button>
               )}
             </DialogFooter>

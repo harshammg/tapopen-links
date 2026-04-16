@@ -78,36 +78,27 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
           </div>
         </div>
 
-        <div className="space-y-1.5 px-0.5">
-          <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
-            Custom Alias (Optional)
-          </label>
-          <div className="flex items-center gap-1.5 md:gap-2">
-            <div className="bg-muted px-2 md:px-3 py-3 rounded-xl text-[10px] md:text-xs font-bold text-muted-foreground border border-border whitespace-nowrap">
-              tapopen.online/
-            </div>
-            <input
-              type="text"
-              placeholder="my-cool-link"
-              value={customSlug}
-              onChange={(e) => {
-                setCustomSlug(e.target.value);
-                if (setAliasError) setAliasError(null);
-              }}
-              className={`flex-1 min-w-0 bg-background border ${aliasError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'} rounded-xl px-3 md:px-4 py-3 text-sm font-medium transition-all focus:outline-none`}
-            />
+        <div className="space-y-3 px-0.5">
+          <div className="flex justify-between items-center">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
+              Custom Alias (Optional)
+            </label>
+            <span className="text-[10px] text-primary font-bold uppercase tracking-wider">tapopen.online/</span>
           </div>
+          <input
+            type="text"
+            placeholder="my-cool-link"
+            value={customSlug}
+            disabled={isGenerating}
+            onChange={(e) => {
+              setCustomSlug(e.target.value);
+              if (setAliasError) setAliasError(null);
+            }}
+            className={`w-full bg-background border ${aliasError ? 'border-destructive focus:border-destructive' : 'border-border focus:border-primary'} rounded-xl px-4 py-3 text-sm font-medium transition-all focus:outline-none`}
+          />
           {aliasError && (
-            <div className="flex flex-col gap-2 mt-1 animate-fade-in">
+            <div className="mt-2 animate-fade-in">
               <p className="text-[10px] text-destructive font-bold uppercase tracking-tight ml-1">{aliasError}</p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-max h-8 text-[10px] font-bold border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-lg flex items-center gap-1.5"
-                onClick={() => onGenerate(true)}
-              >
-                <Zap className="h-3 w-3" /> Clear & Skip
-              </Button>
             </div>
           )}
         </div>
@@ -119,15 +110,29 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
           </div>
         )}
 
-        <Button
-          size="lg"
-          className="w-full h-14 text-base font-bold"
-          variant="gradient"
-          disabled={!url || isGenerating}
-          onClick={() => onGenerate()}
-        >
-          {isGenerating ? "Generating..." : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            size="lg"
+            className="flex-[2] h-14 text-base font-bold"
+            variant="gradient"
+            disabled={!url || isGenerating}
+            onClick={() => onGenerate()}
+          >
+            {isGenerating ? "Generating..." : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
+
+          {aliasError && (
+            <Button 
+              size="lg"
+              variant="outline" 
+              className="flex-1 h-14 text-sm font-bold border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-xl flex items-center gap-2"
+              onClick={() => onGenerate(true)}
+              disabled={isGenerating}
+            >
+              <Zap className="h-4 w-4" /> Clear & Generate
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
