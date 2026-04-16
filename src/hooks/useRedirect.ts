@@ -38,7 +38,7 @@ export const useRedirect = (slug: string | undefined) => {
           setTimeout(() => {
             setNeedsManualOpen(true);
             setIsProcessing(false);
-          }, 2000);
+          }, 500);
           return;
         }
 
@@ -53,7 +53,7 @@ export const useRedirect = (slug: string | undefined) => {
               document.body.removeChild(iframe);
               setNeedsManualOpen(true);
               setIsProcessing(false);
-            }, 1500);
+            }, 500);
           } else {
             setNeedsManualOpen(true);
             setIsProcessing(false);
@@ -67,7 +67,7 @@ export const useRedirect = (slug: string | undefined) => {
             setTimeout(() => {
               setNeedsManualOpen(true);
               setIsProcessing(false);
-            }, 2000);
+            }, 500);
           } else {
             setNeedsManualOpen(true);
             setIsProcessing(false);
