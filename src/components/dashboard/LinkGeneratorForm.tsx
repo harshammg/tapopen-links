@@ -92,12 +92,13 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
           className="w-full h-14 text-base font-bold"
           variant="gradient"
           disabled={!url || isGenerating}
-          onClick={() => {
+          onClick={async () => {
             if (aliasError) {
               setCustomSlug("");
               if (setAliasError) setAliasError(null);
-              // Small timeout to ensure state update is reflected before generation
-              setTimeout(onGenerate, 0);
+              requestAnimationFrame(() => {
+                onGenerate();
+              });
             } else {
               onGenerate();
             }
