@@ -220,9 +220,14 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                   type="button" 
                   variant="secondary" 
                   className="flex-1 h-12 rounded-xl font-bold"
-                  onClick={handleFinalAction}
+                  onClick={() => {
+                    setCustomSlug("");
+                    setAliasError(null);
+                    // Use a small timeout or state closure to ensure handleFinalAction sees the empty slug
+                    setTimeout(handleFinalAction, 0);
+                  }}
                 >
-                  Skip
+                  {aliasError ? "Clear & Proceed" : "Skip"}
                 </Button>
               )}
             </DialogFooter>
