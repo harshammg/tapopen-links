@@ -22,7 +22,54 @@ export const useLinks = () => {
   }, []);
 
   useEffect(() => {
-    fetchLinks();
+    const claimPendingLink = async () => {
+      const pendingLinkRaw = localStorage.getItem("pending_tapopen_link");
+      if (!pendingLinkRaw) {
+        fetchLinks();
+        return;
+      }
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          fetchLinks();
+          return;
+        }
+
+        const pendingLink = JSON.parse(pendingLinkRaw);
+        localStorage.removeItem("pending_tapopen_link");
+
+        try {
+          await linkService.createLink({
+            original_url: pendingLink.original_url,
+            platform: pendingLink.platform,
+            slug: pendingLink.slug,
+            user_id: session.user.id,
+            clicks: 0
+          });
+          toast.success("Successfully claimed your link!");
+        } catch (err: any) {
+          // If conflict, try to save with a unique slug
+          if (err?.code === '23505') {
+            const randomSlug = `${pendingLink.slug}-${Math.random().toString(36).substring(2, 6)}`;
+            await linkService.createLink({
+              original_url: pendingLink.original_url,
+              platform: pendingLink.platform,
+              slug: randomSlug,
+              user_id: session.user.id,
+              clicks: 0
+            });
+            toast.success("Linked claimed with a unique alias!");
+          }
+        }
+      } catch (e) {
+        console.error("Claim error:", e);
+      } finally {
+        fetchLinks();
+      }
+    };
+
+    claimPendingLink();
   }, [fetchLinks]);
 
   const createLink = async (linkData: Partial<Link>) => {

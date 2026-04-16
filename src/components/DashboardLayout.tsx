@@ -43,50 +43,6 @@ const DashboardLayout = () => {
 
       setCurrentUser(session.user);
 
-      // Claim Anonymous Link Logic
-      const pendingLinkRaw = localStorage.getItem("pending_tapopen_link");
-      if (pendingLinkRaw && !isClaiming) {
-        setIsClaiming(true);
-        try {
-          const pendingLink = JSON.parse(pendingLinkRaw);
-          localStorage.removeItem("pending_tapopen_link"); // Remove immediately
-          
-          try {
-            await linkService.createLink({
-              original_url: pendingLink.original_url,
-              platform: pendingLink.platform,
-              slug: pendingLink.slug,
-              user_id: session.user.id,
-              clicks: 0
-            });
-            toast.success("Claimed your landing page link!");
-          } catch (err: any) {
-            if (err?.code === '23505') {
-              try {
-                const randomSlug = `${pendingLink.slug}-${nanoid(4)}`;
-                await linkService.createLink({
-                  original_url: pendingLink.original_url,
-                  platform: pendingLink.platform,
-                  slug: randomSlug,
-                  user_id: session.user.id,
-                  clicks: 0
-                });
-                toast.success(`Claimed! Used "${randomSlug}" as alias was taken.`);
-              } catch (retryErr: any) {
-                console.error("Retry failed:", retryErr);
-                toast.error("System busy. Please check your dashboard.");
-              }
-            } else {
-              console.error("Claim failed:", err);
-            }
-          }
-        } catch (parseErr) {
-          localStorage.removeItem("pending_tapopen_link");
-        } finally {
-          setIsClaiming(false);
-        }
-      }
-
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("full_name, handle")
