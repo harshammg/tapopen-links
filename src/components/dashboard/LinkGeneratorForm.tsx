@@ -92,9 +92,18 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
           className="w-full h-14 text-base font-bold"
           variant="gradient"
           disabled={!url || isGenerating}
-          onClick={onGenerate}
+          onClick={() => {
+            if (aliasError) {
+              setCustomSlug("");
+              if (setAliasError) setAliasError(null);
+              // Small timeout to ensure state update is reflected before generation
+              setTimeout(onGenerate, 0);
+            } else {
+              onGenerate();
+            }
+          }}
         >
-          {isGenerating ? "Generating..." : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
+          {isGenerating ? "Generating..." : aliasError ? "Clear & Proceed" : "Generate Deep Link"} <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </div>
     </div>
