@@ -104,7 +104,6 @@ const SettingsPage = () => {
           instagram_url: profile.instagram_url,
           twitter_url: profile.twitter_url,
           website_url: profile.website_url,
-          updated_at: new Date().toISOString()
         })
         .eq("id", session.user.id);
 

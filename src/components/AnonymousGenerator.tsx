@@ -178,7 +178,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
           <div className="p-8 space-y-6">
             <div className="space-y-3">
               <Label htmlFor="platform-name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                Display Name
+                Display Name (Optional)
               </Label>
               <Input
                 id="platform-name"

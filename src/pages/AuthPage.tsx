@@ -226,6 +226,18 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
             Continue with Google
           </Button>
 
+          {mode === "signup" && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-14 rounded-xl font-bold text-sm bg-background hover:bg-muted transition-colors flex items-center justify-center gap-3 border-border"
+              onClick={() => navigate("/auth/login")}
+            >
+              <Mail className="w-5 h-5 text-muted-foreground" />
+              Log in with email
+            </Button>
+          )}
+
           <div className="flex items-center gap-4">
             <div className="h-px bg-border flex-1" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or</span>
