@@ -37,32 +37,6 @@ const QuickLinkGenerator = () => {
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState<LinkType | null>(null);
 
-  // ── Claim Logic ─────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const claimLink = async () => {
-      const pendingLinkRaw = localStorage.getItem("pending_tapopen_link");
-      if (!pendingLinkRaw || !supabase) return;
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      try {
-        const pendingLink = JSON.parse(pendingLinkRaw);
-        await createLink({
-          original_url: pendingLink.original_url,
-          platform: pendingLink.platform,
-          slug: pendingLink.slug,
-        });
-        toast.success("Claimed your landing page link!");
-      } catch (err) {
-        console.error("Failed to claim:", err);
-      } finally {
-        localStorage.removeItem("pending_tapopen_link");
-      }
-    };
-    claimLink();
-  }, [createLink]);
-
   // ── Actions ─────────────────────────────────────────────────────────────────
   const handleGenerateClick = () => {
     if (!url) return;

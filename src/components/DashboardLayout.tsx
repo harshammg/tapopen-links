@@ -4,6 +4,7 @@ import { Home, Layout, BarChart3, QrCode, Settings, LogOut, Zap, User } from "lu
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import OnboardingModal from "./dashboard/OnboardingModal";
+import { linkService } from "@/services/linkService";
 
 const navItems = [
   { label: "Quick Link", icon: Zap, path: "/dashboard" },
@@ -39,6 +40,30 @@ const DashboardLayout = () => {
       }
 
       setCurrentUser(session.user);
+
+      // Claim Anonymous Link Logic
+      const pendingLinkRaw = localStorage.getItem("pending_tapopen_link");
+      if (pendingLinkRaw) {
+        try {
+          const pendingLink = JSON.parse(pendingLinkRaw);
+          await linkService.createLink({
+            original_url: pendingLink.original_url,
+            platform: pendingLink.platform,
+            slug: pendingLink.slug,
+            user_id: session.user.id,
+            clicks: 0
+          });
+          toast.success("Claimed your landing page link!");
+        } catch (err: any) {
+          if (err?.code === '23505') {
+            toast.error("Your chosen alias was already taken by someone else while you signed up. Please create a new link with a different alias.");
+          } else {
+            console.error("Failed to claim:", err);
+          }
+        } finally {
+          localStorage.removeItem("pending_tapopen_link");
+        }
+      }
 
       const { data: profile, error } = await supabase
         .from("profiles")
