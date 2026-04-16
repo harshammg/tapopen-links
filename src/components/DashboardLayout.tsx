@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import OnboardingModal from "./dashboard/OnboardingModal";
 import { linkService } from "@/services/linkService";
+import { nanoid } from "nanoid";
 
 const navItems = [
   { label: "Quick Link", icon: Zap, path: "/dashboard" },
@@ -54,9 +55,23 @@ const DashboardLayout = () => {
             clicks: 0
           });
           toast.success("Claimed your landing page link!");
-        } catch (err: any) {
+          } catch (err: any) {
           if (err?.code === '23505') {
-            toast.error("Your chosen alias was already taken by someone else while you signed up. Please create a new link with a different alias.");
+            // Alias taken - generate a random one and try again immediately
+            try {
+              const randomSlug = `${pendingLink.slug}-${nanoid(4)}`;
+              await linkService.createLink({
+                original_url: pendingLink.original_url,
+                platform: pendingLink.platform,
+                slug: randomSlug,
+                user_id: session.user.id,
+                clicks: 0
+              });
+              toast.success(`Claimed! Alias "${pendingLink.slug}" was taken, so we used "${randomSlug}" for you.`);
+            } catch (retryErr) {
+              console.error("Retry failed:", retryErr);
+              toast.error("Failed to claim link due to a system error.");
+            }
           } else {
             console.error("Failed to claim:", err);
           }
