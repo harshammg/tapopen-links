@@ -33,7 +33,6 @@ const QuickLinkGenerator = () => {
   const [aliasError, setAliasError] = useState<string | null>(null);
   
   // Modal State
-  const [isNamingModalOpen, setIsNamingModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState<LinkType | null>(null);
@@ -46,14 +45,8 @@ const QuickLinkGenerator = () => {
       setUrl(cleaned);
       toast.info("Link parameters cleaned.");
     }
-    const detected = getPlatform(cleaned);
-    setTempPlatformName(detected === "Unknown" ? "" : detected);
     
-    if (skip) {
-      handleConfirmGenerate(true);
-    } else {
-      setIsNamingModalOpen(true);
-    }
+    handleConfirmGenerate(skip);
   };
 
   const handleConfirmGenerate = async (skipAlias?: boolean) => {
@@ -63,15 +56,15 @@ const QuickLinkGenerator = () => {
     
     const result = await createLink({
       original_url: url,
-      platform: tempPlatformName.trim() || (skipAlias ? (getPlatform(url) === "Unknown" ? "App" : getPlatform(url)) : "App"),
+      platform: tempPlatformName.trim() || (getPlatform(url) === "Unknown" ? "App" : getPlatform(url)),
       slug: finalSlug,
     });
 
     if (result.success) {
       setUrl("");
       setCustomSlug("");
+      setTempPlatformName("");
       setAliasError(null);
-      setIsNamingModalOpen(false);
     } else if (result.error === 'CONFLICT') {
       setAliasError("Alias taken! Try another or clear it for a random one.");
     }
@@ -112,6 +105,8 @@ const QuickLinkGenerator = () => {
             onPaste={handlePaste}
             onGenerate={handleGenerateClick}
             detectedPlatform={detectedPlatform}
+            platformName={tempPlatformName}
+            setPlatformName={setTempPlatformName}
             aliasError={aliasError}
             setAliasError={setAliasError}
           />
@@ -168,14 +163,6 @@ const QuickLinkGenerator = () => {
       </div>
 
       {/* Modals */}
-      <NamingModal 
-        isOpen={isNamingModalOpen}
-        onClose={() => setIsNamingModalOpen(false)}
-        tempPlatformName={tempPlatformName}
-        setTempPlatformName={setTempPlatformName}
-        onConfirm={handleConfirmGenerate}
-      />
-
       <EditLinkModal 
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

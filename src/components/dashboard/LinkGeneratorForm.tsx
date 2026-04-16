@@ -12,6 +12,8 @@ interface LinkGeneratorFormProps {
   onPaste: () => void;
   onGenerate: (skip?: boolean) => void;
   detectedPlatform?: PlatformConfig;
+  platformName: string;
+  setPlatformName: (name: string) => void;
   aliasError?: string | null;
   setAliasError?: (err: string | null) => void;
 }
@@ -25,6 +27,8 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
   onPaste,
   onGenerate,
   detectedPlatform,
+  platformName,
+  setPlatformName,
   aliasError,
   setAliasError
 }) => {
@@ -35,26 +39,42 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
       </h3>
 
       <div className="space-y-5">
-        <div className="relative">
-          <input
-            type="url"
-            inputMode="url"
-            placeholder="Paste your link here..."
-            value={url}
-            disabled={isGenerating}
-            onChange={(e) => setUrl(e.target.value)}
-            className="w-full bg-background border-2 border-border focus:border-primary rounded-xl px-4 pr-12 py-4 text-base font-medium transition-all focus:outline-none disabled:opacity-50"
-          />
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onPaste}
-              className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-primary"
-              title="Paste from clipboard"
-            >
-              <ClipboardPaste className="h-4 w-4 md:h-5 md:w-5" />
-            </button>
-            {isGenerating && <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-primary" />}
+        <div className="space-y-4">
+          <div className="relative">
+            <input
+              type="url"
+              inputMode="url"
+              placeholder="Paste your link here..."
+              value={url}
+              disabled={isGenerating}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full bg-background border-2 border-border focus:border-primary rounded-xl px-4 pr-12 py-4 text-base font-medium transition-all focus:outline-none disabled:opacity-50"
+            />
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onPaste}
+                className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-primary"
+                title="Paste from clipboard"
+              >
+                <ClipboardPaste className="h-4 w-4 md:h-5 md:w-5" />
+              </button>
+              {isGenerating && <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-primary" />}
+            </div>
+          </div>
+
+          <div className="space-y-1.5 px-0.5 animate-in fade-in slide-in-from-top-2 duration-300">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
+              Link Display Name (Optional)
+            </label>
+            <input
+              type="text"
+              placeholder={detectedPlatform ? `${detectedPlatform.name} Link` : "e.g. My Channel, Portfolio"}
+              value={platformName}
+              disabled={isGenerating}
+              onChange={(e) => setPlatformName(e.target.value)}
+              className="w-full bg-background border border-border focus:border-primary rounded-xl px-4 py-3 text-sm font-medium transition-all focus:outline-none"
+            />
           </div>
         </div>
 
