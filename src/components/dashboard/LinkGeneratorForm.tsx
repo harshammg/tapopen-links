@@ -113,7 +113,7 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
         <div className="flex flex-col sm:flex-row gap-3">
           <Button
             size="lg"
-            className="flex-[2] h-14 text-base font-bold"
+            className="flex-[2] h-16 md:h-18 lg:h-14 text-lg sm:text-base font-bold"
             variant="gradient"
             disabled={!url || isGenerating}
             onClick={() => onGenerate()}
@@ -125,7 +125,7 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
             <Button 
               size="lg"
               variant="outline" 
-              className="flex-1 h-14 text-sm font-bold border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-xl flex items-center gap-2"
+              className="flex-1 h-16 md:h-18 lg:h-14 text-base sm:text-sm font-bold border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive rounded-xl flex items-center justify-center gap-2"
               onClick={() => onGenerate(true)}
               disabled={isGenerating}
             >
