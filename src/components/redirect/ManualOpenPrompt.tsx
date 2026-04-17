@@ -20,14 +20,8 @@ const ManualOpenPrompt: React.FC<ManualOpenPromptProps> = ({ url }) => {
         
         <div className="space-y-3 mb-10">
           <p className="text-slate-300 font-medium">In-app browsers sometimes limit automatic redirects to keep you inside their app.</p>
-          <p className="text-slate-500 text-sm">Tap the button below to launch the optimized deep-link bridge and open your destination.</p>
+          <p className="text-slate-500 text-sm">Please use the manual backup below to open the destination in your preferred browser.</p>
         </div>
-        
-        <a href={url} rel="noopener noreferrer" className="block transform active:scale-95 transition-transform">
-          <Button className="w-full h-16 text-lg font-bold rounded-[22px] shadow-xl shadow-primary/10" variant="gradient">
-            Open in Browser / App <ExternalLink className="ml-2 h-5 w-5" />
-          </Button>
-        </a>
 
         <div className="mt-10 pt-8 border-t border-white/5">
           <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-black mb-3">
