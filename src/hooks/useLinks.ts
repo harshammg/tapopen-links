@@ -24,20 +24,19 @@ export const useLinks = () => {
   }, []);
 
   useEffect(() => {
-    const claimPendingLink = async () => {
+    if (!supabase) return;
+
+    const claimPendingLink = async (session: any) => {
       const pendingLinkRaw = localStorage.getItem("pending_tapopen_link");
-      if (!pendingLinkRaw) {
+      if (!pendingLinkRaw || !session?.user) {
         fetchLinks();
         return;
       }
 
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          fetchLinks();
-          return;
-        }
+      // Small delay to ensure database profile trigger finishes on first-time usage
+      await new Promise(r => setTimeout(r, 1000));
 
+      try {
         const pendingLink = JSON.parse(pendingLinkRaw);
         localStorage.removeItem("pending_tapopen_link");
 
@@ -52,7 +51,6 @@ export const useLinks = () => {
           setNewlyCreatedSlugs(prev => [...prev, pendingLink.slug]);
           toast.success("Successfully claimed your link!");
         } catch (err: any) {
-          // If conflict, try to save with a unique slug
           if (err?.code === '23505') {
             const randomSlug = `${pendingLink.slug}-${Math.random().toString(36).substring(2, 6)}`;
             await linkService.createLink({
@@ -73,7 +71,20 @@ export const useLinks = () => {
       }
     };
 
-    claimPendingLink();
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) claimPendingLink(session);
+      else fetchLinks();
+    });
+
+    // Listen for auth state changes (crucial for first-time signups/logins)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        claimPendingLink(session);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [fetchLinks]);
 
   const createLink = async (linkData: Partial<Link>) => {
