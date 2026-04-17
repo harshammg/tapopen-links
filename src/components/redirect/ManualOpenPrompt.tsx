@@ -10,22 +10,43 @@ const ManualOpenPrompt: React.FC<ManualOpenPromptProps> = ({ url }) => {
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] -z-10" />
+      
       <div className="max-w-md w-full animate-in fade-in zoom-in duration-700">
-        <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <ExternalLink className="h-8 w-8 text-primary" />
+        <div className="w-20 h-20 bg-primary/10 border border-primary/20 rounded-[28px] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/20">
+          <ExternalLink className="h-10 w-10 text-primary" />
         </div>
-        <h2 className="text-3xl font-display font-bold mb-3 text-white">One More Step</h2>
-        <p className="text-slate-400 mb-2">Instagram is blocking the automatic redirect.</p>
-        <p className="text-slate-500 text-sm mb-10">Tap the button below to open the link in your browser, which will launch the app.</p>
         
-        <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-          <Button className="w-full h-14 text-base font-bold rounded-2xl" variant="gradient">
-            Open Link in Browser <ExternalLink className="ml-2 h-4 w-4" />
+        <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 text-white tracking-tight">Almost there!</h2>
+        
+        <div className="space-y-3 mb-10">
+          <p className="text-slate-300 font-medium">In-app browsers sometimes limit automatic redirects to keep you inside their app.</p>
+          <p className="text-slate-500 text-sm">Tap the button below to launch the optimized deep-link bridge and open your destination.</p>
+        </div>
+        
+        <a href={url} rel="noopener noreferrer" className="block transform active:scale-95 transition-transform">
+          <Button className="w-full h-16 text-lg font-bold rounded-[22px] shadow-xl shadow-primary/10" variant="gradient">
+            Open in Browser / App <ExternalLink className="ml-2 h-5 w-5" />
           </Button>
         </a>
-        <p className="mt-6 text-[10px] uppercase tracking-widest text-slate-600 font-bold">
-          Or copy this link manually: {window.location.href}
-        </p>
+
+        <div className="mt-10 pt-8 border-t border-white/5">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-black mb-3">
+            Manual Backup
+          </p>
+          <div className="bg-slate-900/50 border border-white/5 rounded-xl p-3 flex items-center gap-3">
+            <p className="text-[11px] text-slate-400 font-mono truncate flex-1 text-left">
+              {url}
+            </p>
+            <button 
+              onClick={() => {
+                navigator.clipboard.writeText(url);
+              }}
+              className="text-[10px] font-bold text-primary hover:text-white transition-colors"
+            >
+              COPY
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
