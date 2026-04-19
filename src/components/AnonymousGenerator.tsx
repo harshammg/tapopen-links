@@ -33,7 +33,6 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
   const [customSlug, setCustomSlug] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isNamingModalOpen, setIsNamingModalOpen] = useState(false);
-  const [tempPlatformName, setTempPlatformName] = useState("");
   const [aliasError, setAliasError] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -60,8 +59,6 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
       setUrl(cleaned);
     }
 
-    const detected = getPlatform(cleaned);
-    setTempPlatformName(detected === "Unknown" ? "" : detected);
     setIsNamingModalOpen(true);
   };
 
@@ -73,7 +70,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
     
     const linkData = {
       original_url: url,
-      platform: tempPlatformName.trim() || "App",
+      platform: getPlatform(url) === "Unknown" ? "App" : getPlatform(url),
       slug: finalSlug,
       created_at: new Date().toISOString()
     };
@@ -177,20 +174,6 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
           
           <div className="p-8 space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="platform-name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                Display Name (Optional)
-              </Label>
-              <Input
-                id="platform-name"
-                placeholder={detectedPlatform ? detectedPlatform.name : "e.g. My Channel, Portfolio"}
-                value={tempPlatformName}
-                onChange={(e) => setTempPlatformName(e.target.value)}
-                className="h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base"
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-3">
               <div className="flex justify-between items-center ml-1">
                 <Label htmlFor="custom-slug" className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                   Custom Alias (Optional)
@@ -203,6 +186,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
                 value={customSlug}
                 onChange={(e) => { setCustomSlug(e.target.value); setAliasError(null); }}
                 className={`h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base ${aliasError ? "border-destructive focus:ring-destructive" : ""}`}
+                autoFocus
               />
               {aliasError && (
                 <div className="mt-2 animate-fade-in">

@@ -19,7 +19,6 @@ import LinkGeneratorForm from "@/components/dashboard/LinkGeneratorForm";
 import LinkItem from "@/components/dashboard/LinkItem";
 import AnalyticsModal from "@/components/dashboard/AnalyticsModal";
 import EditLinkModal from "@/components/dashboard/EditLinkModal";
-import NamingModal from "@/components/dashboard/NamingModal";
 
 const QuickLinkGenerator = () => {
   const { links, isLoading, newlyCreatedSlugs, createLink, updateLink, deleteLink, fetchLinks } = useLinks();
@@ -29,7 +28,6 @@ const QuickLinkGenerator = () => {
   const [customSlug, setCustomSlug] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [activeShareLink, setActiveShareLink] = useState<{ slug: string, platform: string } | null>(null);
-  const [tempPlatformName, setTempPlatformName] = useState("");
   const [aliasError, setAliasError] = useState<string | null>(null);
   
   // Modal State
@@ -57,14 +55,13 @@ const QuickLinkGenerator = () => {
     
     const result = await createLink({
       original_url: url,
-      platform: tempPlatformName.trim() || (getPlatform(url) === "Unknown" ? "App" : getPlatform(url)),
+      platform: getPlatform(url) === "Unknown" ? "App" : getPlatform(url),
       slug: finalSlug,
     });
 
     if (result.success) {
       setUrl("");
       setCustomSlug("");
-      setTempPlatformName("");
       setAliasError(null);
     } else if (result.error === 'CONFLICT') {
       setAliasError("Alias taken! Try another or clear it for a random one.");
@@ -106,8 +103,6 @@ const QuickLinkGenerator = () => {
             onPaste={handlePaste}
             onGenerate={handleGenerateClick}
             detectedPlatform={detectedPlatform}
-            platformName={tempPlatformName}
-            setPlatformName={setTempPlatformName}
             aliasError={aliasError}
             setAliasError={setAliasError}
           />

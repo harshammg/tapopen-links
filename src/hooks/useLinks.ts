@@ -26,19 +26,22 @@ export const useLinks = () => {
   useEffect(() => {
     if (!supabase) return;
 
+    let isProcessingClaim = false;
+
     const claimPendingLink = async (session: any) => {
       const pendingLinkRaw = localStorage.getItem("pending_tapopen_link");
-      if (!pendingLinkRaw || !session?.user) {
+      if (!pendingLinkRaw || !session?.user || isProcessingClaim) {
         fetchLinks();
         return;
       }
 
-      // Small delay to ensure database profile trigger finishes on first-time usage
-      await new Promise(r => setTimeout(r, 1000));
-
+      isProcessingClaim = true;
       try {
         const pendingLink = JSON.parse(pendingLinkRaw);
         localStorage.removeItem("pending_tapopen_link");
+
+        // Small delay to ensure database profile trigger finishes on first-time usage
+        await new Promise(r => setTimeout(r, 1000));
 
         try {
           await linkService.createLink({
@@ -67,6 +70,7 @@ export const useLinks = () => {
       } catch (e) {
         console.error("Claim error:", e);
       } finally {
+        isProcessingClaim = false;
         fetchLinks();
       }
     };

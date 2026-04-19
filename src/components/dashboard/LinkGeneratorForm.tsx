@@ -12,8 +12,6 @@ interface LinkGeneratorFormProps {
   onPaste: () => void;
   onGenerate: (skip?: boolean) => void;
   detectedPlatform?: PlatformConfig;
-  platformName: string;
-  setPlatformName: (name: string) => void;
   aliasError?: string | null;
   setAliasError?: (err: string | null) => void;
 }
@@ -27,8 +25,6 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
   onPaste,
   onGenerate,
   detectedPlatform,
-  platformName,
-  setPlatformName,
   aliasError,
   setAliasError
 }) => {
@@ -61,20 +57,6 @@ const LinkGeneratorForm: React.FC<LinkGeneratorFormProps> = ({
               </button>
               {isGenerating && <div className="animate-spin rounded-full h-4 w-4 md:h-5 md:w-5 border-b-2 border-primary" />}
             </div>
-          </div>
-
-          <div className="space-y-1.5 px-0.5 animate-in fade-in slide-in-from-top-2 duration-300">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
-              Link Display Name (Optional)
-            </label>
-            <input
-              type="text"
-              placeholder={detectedPlatform ? `${detectedPlatform.name} Link` : "e.g. My Channel, Portfolio"}
-              value={platformName}
-              disabled={isGenerating}
-              onChange={(e) => setPlatformName(e.target.value)}
-              className="w-full bg-background border border-border focus:border-primary rounded-xl px-4 py-3 text-sm font-medium transition-all focus:outline-none"
-            />
           </div>
         </div>
 

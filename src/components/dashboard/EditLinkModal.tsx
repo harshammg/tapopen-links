@@ -22,13 +22,11 @@ interface EditLinkModalProps {
 
 const EditLinkModal: React.FC<EditLinkModalProps> = ({ isOpen, onClose, link, onUpdate }) => {
   const [originalUrl, setOriginalUrl] = useState("");
-  const [platform, setPlatform] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (link) {
       setOriginalUrl(link.original_url);
-      setPlatform(link.platform);
     }
   }, [link]);
 
@@ -36,8 +34,7 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ isOpen, onClose, link, on
     if (!link) return;
     setIsSubmitting(true);
     const success = await onUpdate(link.slug, {
-      original_url: originalUrl,
-      platform: platform
+      original_url: originalUrl
     });
     if (success) onClose();
     setIsSubmitting(false);
@@ -52,24 +49,12 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ isOpen, onClose, link, on
           <DialogHeader>
             <DialogTitle className="text-2xl font-display font-bold">Edit Redirect</DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Update your link's destination or display name.
+              Update your link's destination.
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="p-8 space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="edit-platform" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-              Display Name
-            </Label>
-            <Input
-              id="edit-platform"
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              className="h-12 rounded-xl border-border focus:ring-primary focus:border-primary text-base"
-            />
-          </div>
-
           <div className="space-y-3">
             <Label htmlFor="edit-url" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
               Destination URL
@@ -82,9 +67,15 @@ const EditLinkModal: React.FC<EditLinkModalProps> = ({ isOpen, onClose, link, on
             />
           </div>
 
-          <div className="bg-muted/30 p-4 rounded-xl">
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1.5 opacity-60">Custom Alias (Read Only)</p>
-            <p className="font-mono text-sm font-bold text-primary opacity-50">tapopen.online/{link.slug}</p>
+          <div className="bg-muted/30 p-4 rounded-xl space-y-3">
+            <div>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1.5 opacity-60">Redirect Label</p>
+              <p className="text-sm font-bold text-foreground">{link.platform}</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-1.5 opacity-60">Custom Alias (Read Only)</p>
+              <p className="font-mono text-sm font-bold text-primary opacity-50">tapopen.online/{link.slug}</p>
+            </div>
           </div>
 
           <DialogFooter className="flex flex-col sm:flex-row gap-3">
