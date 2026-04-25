@@ -130,8 +130,8 @@ const QuickLinkGenerator = () => {
         </aside>
       </div>
 
-      <div className="mt-12 md:mt-20">
-        <h3 className="text-xl md:text-2xl font-display font-bold mb-8 flex items-center gap-3">
+      <div className="mt-12 md:mt-20 text-left">
+        <h3 className="text-xl md:text-2xl font-display font-bold mb-8 flex items-center gap-3 text-left">
           Your Redirects <span className="bg-muted px-2 py-0.5 rounded-lg text-xs text-muted-foreground">{links.length}</span>
         </h3>
         

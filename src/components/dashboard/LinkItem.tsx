@@ -24,7 +24,10 @@ const LinkItem: React.FC<LinkItemProps> = ({
   onShare,
   isNew
 }) => {
-  return (
+  // Helper to truncate long URLs for display
+  const truncateUrl = (url: string, maxLength = 50) => {
+    return url.length > maxLength ? `${url.slice(0, maxLength)}...` : url;
+  };
     <div className={`bg-card border ${isNew ? 'border-primary shadow-lg shadow-primary/5 ring-1 ring-primary/20' : 'border-border'} rounded-2xl p-4 flex flex-col gap-3 hover:border-primary transition-all group/item`}>
       {/* Platform badge + Clicks */}
       <div className="flex items-center justify-between">
@@ -81,7 +84,7 @@ const LinkItem: React.FC<LinkItemProps> = ({
 
       {/* Original URL */}
       <p className="text-[11px] text-muted-foreground truncate px-1">
-        ↳ {link.original_url}
+        ↳ {truncateUrl(link.original_url)}
       </p>
 
       {/* Action buttons */}
