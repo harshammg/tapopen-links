@@ -134,6 +134,14 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({ isOpen, onClose,
               <>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-primary/40 rounded-3xl pointer-events-none animate-pulse" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 w-48 h-0.5 bg-primary/40 shadow-[0_0_15px_rgba(var(--primary),0.5)] pointer-events-none animate-[scan_2s_infinite]" />
+                
+                {/* Floating Mobile Camera Switch */}
+                <button 
+                  onClick={toggleCamera}
+                  className="absolute bottom-4 right-4 w-12 h-12 bg-primary/20 backdrop-blur-xl border border-white/20 rounded-full flex items-center justify-center text-white shadow-2xl active:scale-90 transition-all z-20 md:hidden"
+                >
+                  <FlipHorizontal className="w-6 h-6" />
+                </button>
               </>
             )}
           </div>
