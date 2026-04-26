@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Settings, Shield, Key, Trash2, Check, Loader2, 
-  User, Link2, Instagram, Twitter, Globe, Eye, EyeOff
+  User, Link2, Instagram, Twitter, Globe, Eye, EyeOff, BookOpen
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -14,10 +14,7 @@ const SettingsPage = () => {
   const [profile, setProfile] = useState({
     full_name: "",
     handle: "",
-    bio: "",
-    instagram_url: "",
-    twitter_url: "",
-    website_url: ""
+    bio: ""
   });
   const [passwords, setPasswords] = useState({
     current: "",
@@ -54,9 +51,7 @@ const SettingsPage = () => {
             full_name: data.full_name || meta.full_name || "",
             handle: data.handle || meta.handle || "",
             bio: data.bio || "",
-            instagram_url: data.instagram_url || "",
-            twitter_url: data.twitter_url || "",
-            website_url: data.website_url || ""
+            customization: data.customization || {}
           });
         } else {
           // If no profile found, pre-fill with Auth data
@@ -101,9 +96,7 @@ const SettingsPage = () => {
           full_name: profile.full_name,
           handle: profile.handle,
           bio: profile.bio,
-          instagram_url: profile.instagram_url,
-          twitter_url: profile.twitter_url,
-          website_url: profile.website_url,
+          customization: (profile as any).customization
         })
         .eq("id", session.user.id);
 
@@ -250,56 +243,6 @@ const SettingsPage = () => {
                 className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors resize-none"
                 placeholder="Tell your fans who you are..."
               />
-            </div>
-          </div>
-        </div>
-
-        {/* Social Presence */}
-        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-border bg-muted/20">
-            <h3 className="font-display font-bold flex items-center gap-2">
-              <Link2 className="h-5 w-5 text-primary" /> Social Presence
-            </h3>
-          </div>
-          <div className="p-5 md:p-8 grid sm:grid-cols-2 gap-6">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Instagram</label>
-              <div className="relative">
-                <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input 
-                  type="text" 
-                  placeholder="handleonly"
-                  value={profile.instagram_url}
-                  onChange={(e) => setProfile({...profile, instagram_url: e.target.value})}
-                  className="w-full bg-background border border-border rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Twitter / X</label>
-              <div className="relative">
-                <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input 
-                  type="text" 
-                  placeholder="handleonly"
-                  value={profile.twitter_url}
-                  onChange={(e) => setProfile({...profile, twitter_url: e.target.value})}
-                  className="w-full bg-background border border-border rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Personal Website</label>
-              <div className="relative">
-                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input 
-                  type="text" 
-                  placeholder="https://yourwebsite.com"
-                  value={profile.website_url}
-                  onChange={(e) => setProfile({...profile, website_url: e.target.value})}
-                  className="w-full bg-background border border-border rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
             </div>
           </div>
         </div>

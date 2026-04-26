@@ -10,6 +10,10 @@ import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import RedirectHandler from "./pages/RedirectHandler";
 import NotFound from "./pages/NotFound";
+import { LinkPage } from "./components/dashboard/LinkPage";
+import DashboardHub from "./pages/DashboardHub";
+import PortfolioPage from "./pages/PortfolioPage";
+import BlogsPage from "./pages/BlogsPage";
 
 const queryClient = new QueryClient();
 
@@ -29,9 +33,13 @@ const App = () => (
           <Route path="/landing" element={<Navigate to="/" replace />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<QuickLinkGenerator />} />
+            <Route path="hub" element={<DashboardHub />} />
+            <Route path="links" element={<LinkPage />} />
+            <Route path="portfolio" element={<PortfolioPage />} />
+            <Route path="blogs" element={<BlogsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
-          <Route path="/:slug" element={<RedirectHandler />} />
+          <Route path="/:slug/*" element={<RedirectHandler />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

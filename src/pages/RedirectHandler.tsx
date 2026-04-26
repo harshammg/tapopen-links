@@ -5,7 +5,7 @@ import { platforms } from "@/lib/data";
 // Components
 import RedirectLoading from "@/components/redirect/RedirectLoading";
 import ManualOpenPrompt from "@/components/redirect/ManualOpenPrompt";
-import RedirectError from "@/components/redirect/RedirectError";
+import PublicProfile from "./PublicProfile";
 
 const RedirectHandler = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -16,7 +16,8 @@ const RedirectHandler = () => {
     : null;
 
   if (error) {
-    return <RedirectError message={error} />;
+    // If it's not a short link, it might be a public profile handle!
+    return <PublicProfile />;
   }
 
   if (needsManualOpen && link) {

@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Layout, BarChart3, QrCode, Settings, LogOut, Zap, User } from "lucide-react";
+import { Home, Layout, BarChart3, QrCode, Settings, LogOut, Zap, User, Briefcase, BookOpen } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import OnboardingModal from "./dashboard/OnboardingModal";
+
 import { linkService } from "@/services/linkService";
 import { nanoid } from "nanoid";
 
 const navItems = [
   { label: "Quick Link", icon: Zap, path: "/dashboard" },
+  { label: "Dashboard", icon: Layout, path: "/dashboard/hub" },
   { label: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
 
@@ -16,7 +17,6 @@ const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [userName, setUserName] = useState("User");
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isClaiming, setIsClaiming] = useState(false);
 
@@ -49,13 +49,7 @@ const DashboardLayout = () => {
         .eq("id", session.user.id)
         .single();
       
-      if (!profile || !profile.handle) {
-        // Google user with no handle — show onboarding popup instead of redirecting
-        setShowOnboarding(true);
-        return;
-      }
-
-      if (isMounted) setUserName(profile.full_name || profile.handle || session.user.email?.split("@")[0] || "User");
+      if (isMounted) setUserName(profile?.full_name || profile?.handle || session.user.email?.split("@")[0] || "User");
     };
 
     fetchUserData();
@@ -100,36 +94,27 @@ const DashboardLayout = () => {
       </main>
 
       {/* Universal bottom nav (Nav Dock) */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[400px] z-50 bg-background/80 backdrop-blur-xl border border-border flex items-center justify-around py-2.5 px-4 rounded-full shadow-2xl">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[400px] z-50 bg-background/80 backdrop-blur-2xl border border-border flex items-center p-1.5 rounded-full shadow-2xl overflow-hidden">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-2 px-6 py-2 transition-all duration-300 rounded-full ${
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 transition-all duration-300 rounded-full ${
                 active 
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 font-bold" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
               }`}
             >
-              <item.icon className={`h-5 w-5 ${active ? "fill-primary-foreground/20" : ""}`} />
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${active ? "block" : "hidden md:block"}`}>
+              <item.icon className={`h-4 w-4 shrink-0 ${active ? "fill-primary-foreground/20" : ""}`} />
+              <span className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${active ? "block" : "hidden sm:block"}`}>
                 {item.label}
               </span>
             </Link>
           );
         })}
       </div>
-
-      <OnboardingModal
-        isOpen={showOnboarding}
-        user={currentUser}
-        onSuccess={() => {
-          setShowOnboarding(false);
-          window.location.reload();
-        }}
-      />
     </div>
   );
 };

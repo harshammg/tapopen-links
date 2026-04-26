@@ -10,6 +10,12 @@ export interface Link {
   clicks_daily?: Record<string, number>;
   created_at?: string;
   last_accessed_at?: string;
+  title?: string;
+  type?: string;
+  category?: string;
+  active?: boolean;
+  sort_order?: number;
+  deep_link?: boolean;
 }
 
 export interface PlatformConfig {
