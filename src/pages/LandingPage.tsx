@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Smartphone, Zap, ClipboardPaste, Share2, Shield, Globe, Lock, CheckCircle2, AlertCircle, LayoutDashboard } from "lucide-react";
+import { 
+  ArrowRight, Smartphone, Zap, ClipboardPaste, Share2, 
+  Shield, Globe, Lock, CheckCircle2, AlertCircle, 
+  LayoutDashboard, QrCode, Briefcase, BookOpen, Sparkles
+} from "lucide-react";
 import { platforms } from "@/lib/data";
 import { ScrollFadeIn } from "@/components/ScrollFadeIn";
 import { supabase } from "@/lib/supabase";
 import AnonymousGenerator from "@/components/AnonymousGenerator";
-
+import { motion } from "framer-motion";
 
 const LandingPage = () => {
   const [session, setSession] = useState<any>(null);
@@ -19,160 +23,234 @@ const LandingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white text-slate-900 selection:bg-primary/10 overflow-hidden">
+      {/* Dynamic Background Glows - Soft Light Version */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-400/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-400/5 rounded-full blur-[120px]" />
+      </div>
+
       {/* Nav */}
-      <nav className="fixed top-3 left-3 right-3 md:top-4 md:left-4 md:right-4 z-50 border border-border bg-background/80 backdrop-blur-md rounded-full shadow-lg max-w-7xl mx-auto">
-        <div className="flex items-center justify-between h-12 md:h-16 px-4 md:px-6">
-          <Link to="/" className="font-display text-lg md:text-xl font-bold gradient-text">TapOpen</Link>
-          <div className="hidden md:flex items-center gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            <a href="#how-it-works" className="hover:text-primary transition-colors">How it works</a>
+      <nav className="fixed top-4 left-4 right-4 z-50 border border-slate-200 bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.04)] max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between h-16">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.3)] group-hover:rotate-12 transition-transform">
+              <Zap className="w-5 h-5 text-white fill-white" />
+            </div>
+            <span className="font-display text-xl font-bold tracking-tighter text-slate-900">TapOpen</span>
+          </Link>
+          
+          <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+            <a href="#features" className="hover:text-primary transition-colors">Features</a>
+            <a href="#platform" className="hover:text-primary transition-colors">Platforms</a>
           </div>
-          <div className="flex gap-2 md:gap-4">
+
+          <div className="flex gap-4">
             {session ? (
-              <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild>
-                <Link to="/dashboard">
-                  <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+              <Button size="sm" className="bg-slate-900 text-white hover:bg-slate-800 rounded-full font-bold text-[10px] uppercase tracking-widest px-6" asChild>
+                <Link to="/dashboard/hub">
+                  <LayoutDashboard className="mr-2 h-3.5 w-3.5" /> Dashboard
                 </Link>
               </Button>
             ) : (
               <>
-                <Button variant="ghost" size="sm" className="font-bold text-xs uppercase" asChild><Link to="/auth/login">Login</Link></Button>
-                <Button variant="gradient" size="sm" className="font-bold text-xs uppercase px-4 md:px-6" asChild><Link to="/auth/signup">Join Now</Link></Button>
+                <Button variant="ghost" size="sm" className="hidden sm:flex text-slate-500 hover:text-slate-900 font-bold text-[10px] uppercase tracking-widest" asChild>
+                  <Link to="/auth/login">Login</Link>
+                </Button>
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-white rounded-full font-bold text-[10px] uppercase tracking-widest px-6 shadow-[0_4px_15px_rgba(59,130,246,0.2)]" asChild>
+                  <Link to="/auth/signup">Join Elite</Link>
+                </Button>
               </>
             )}
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="pt-32 md:pt-40 pb-16 md:pb-24 px-4 md:px-6 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
-        
-        <div className="container mx-auto text-center max-w-4xl">
+      {/* Hero Section */}
+      <section className="relative pt-48 pb-32 px-6">
+        <div className="container mx-auto text-center max-w-5xl">
           <ScrollFadeIn>
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest mb-6 md:mb-8">
-              <Zap className="h-3 w-3" /> The Link-in-Bio Secret
+            <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-8 text-slate-500">
+              <Sparkles className="h-3 w-3 text-yellow-500" /> 
+              Evolution of the Digital Identity
             </div>
           </ScrollFadeIn>
+          
           <ScrollFadeIn delay={100}>
-            <h1 className="text-5xl md:text-8xl font-display font-bold mb-6 md:mb-8 leading-[0.9] tracking-tighter">
-              Create your <br /><span className="gradient-text">TapOpen URL.</span>
+            <h1 className="text-6xl md:text-9xl font-display font-bold mb-8 leading-[0.85] tracking-tighter text-slate-900">
+              Your Entire World <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600">In One Tap.</span>
             </h1>
           </ScrollFadeIn>
+
           <ScrollFadeIn delay={200}>
-            <p className="text-lg md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-12 font-medium leading-relaxed">
-              Stop losing subscribers to "un-logged" browsers. Open your YouTube, Instagram, and Spotify links directly in the native apps.
+            <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto mb-12 font-medium leading-relaxed">
+              Experience the fastest way to share your links, portfolio, and blogs. Native app redirects. Instant QR networking. Professional aesthetic.
             </p>
           </ScrollFadeIn>
+
           <ScrollFadeIn delay={300}>
-            <div className="mt-4">
+            <div className="flex flex-col items-center gap-6">
               <AnonymousGenerator session={session} />
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30">Press Enter to claim your unique hub</p>
             </div>
           </ScrollFadeIn>
-
         </div>
       </section>
 
-      {/* The Problem (Visualized) */}
-      <section className="hidden md:block py-16 md:py-24 px-4 md:px-6 bg-muted/30">
+      {/* Features Grid */}
+      <section id="features" className="py-32 px-6 relative bg-slate-50/50">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-center font-display">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tighter mb-6 text-slate-900">Built for the <span className="text-primary">Next Era.</span></h2>
+            <p className="text-slate-400 max-w-xl mx-auto font-medium">Everything you need to manage your digital presence in a single, high-performance dashboard.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <FeatureCard 
+              icon={Smartphone} 
+              title="Native Redirects" 
+              desc="Open YouTube, Instagram, and Spotify directly in their native apps. No more login walls." 
+              color="text-blue-600"
+            />
+            <FeatureCard 
+              icon={QrCode} 
+              title="Live QR Scanner" 
+              desc="Scan anyone, connect anywhere. A professional networking suite built into your profile." 
+              color="text-purple-600"
+            />
+            <FeatureCard 
+              icon={Briefcase} 
+              title="Pro Portfolio" 
+              desc="Showcase your best work and professional journey with a stunning, high-end resume layout." 
+              color="text-emerald-600"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Visual Demo Section */}
+      <section className="py-32 border-y border-slate-100">
+        <div className="container mx-auto px-6 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
             <ScrollFadeIn>
-              <h2 className="text-4xl md:text-5xl font-bold mb-8 tracking-tight">
-                Why your links are <span className="text-destructive">broken.</span>
-              </h2>
-              <div className="space-y-8">
-                <ProblemItem 
-                  title="The 'Log-in' Wall" 
-                  desc="In-app browsers (Instagram, TikTok) don't have your users logged in. They can't follow, like, or subscribe to you."
-                />
-                <ProblemItem 
-                  title="Lost Analytics" 
-                  desc="When users watch your content in a browser, your platform stats (Spotify plays, YT views) often don't count."
-                />
-                <ProblemItem 
-                  title="Poor Experience" 
-                  desc="Slow loading times and generic interfaces kill the excitement of your content."
-                />
-              </div>
-            </ScrollFadeIn>
-            <ScrollFadeIn delay={200}>
-              <div className="relative aspect-square rounded-[40px] border border-border bg-card p-1 items-center justify-center flex flex-col shadow-inner overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-full gradient-bg opacity-5 -z-10" />
-                <div className="w-48 h-1 bg-destructive/20 rounded-full mb-8" />
-                <div className="text-center p-8">
-                  <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
-                  <p className="text-2xl font-bold text-destructive mb-2 truncate">UNSUCCESSFUL TAP</p>
-                  <p className="text-sm text-muted-foreground font-medium">Visitor dropped off at "Please Log In" screen.</p>
+              <div className="space-y-8 text-left">
+                <div className="w-12 h-1 bg-primary rounded-full" />
+                <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-none text-slate-900">
+                  One Hub. <br />
+                  <span className="opacity-20 text-slate-400">Total Control.</span>
+                </h2>
+                <div className="space-y-6">
+                  <BenefitItem icon={Zap} title="Instant Updates" desc="Change your links or theme and see it live across the world instantly." />
+                  <BenefitItem icon={Globe} title="Custom Domains" desc="Use your own branding and personality to stand out from the noise." />
+                  <BenefitItem icon={Lock} title="Private Mode" desc="Choose exactly what to show and hide with section visibility toggles." />
                 </div>
-                <div className="w-1/2 h-1 bg-destructive/10 rounded-full mt-8" />
+              </div>
+            </ScrollFadeIn>
+            
+            <ScrollFadeIn delay={200}>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-primary/5 blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative bg-white rounded-[3.5rem] border border-slate-200 p-4 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.1)] overflow-hidden aspect-[9/16] max-w-[320px] mx-auto transform group-hover:scale-105 transition-transform duration-700">
+                  <div className="absolute top-0 inset-x-0 h-8 bg-white z-10" />
+                  <div className="w-full h-full bg-slate-50 rounded-[2.5rem] overflow-hidden flex flex-col items-center pt-12 p-6">
+                    <div className="w-16 h-16 rounded-full bg-slate-200 mb-6 animate-pulse" />
+                    <div className="w-32 h-4 bg-slate-200 rounded-full mb-2 animate-pulse" />
+                    <div className="w-24 h-2 bg-slate-100 rounded-full mb-12 animate-pulse" />
+                    <div className="space-y-3 w-full">
+                      {[1,2,3,4].map(i => (
+                        <div key={i} className="w-full h-10 rounded-xl bg-white border border-slate-100 shadow-sm" />
+                      ))}
+                    </div>
+                    <div className="mt-auto w-full flex gap-2">
+                       <div className="flex-1 h-8 rounded-lg bg-primary/10" />
+                       <div className="flex-1 h-8 rounded-lg bg-slate-100" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </ScrollFadeIn>
           </div>
         </div>
       </section>
 
-      {/* The Solution */}
-      <section id="how-it-works" className="py-20 md:py-32 px-4 md:px-6">
-        <div className="container mx-auto max-w-5xl text-center">
-          <ScrollFadeIn>
-            <h2 className="text-3xl md:text-6xl font-display font-bold mb-12 md:mb-20 tracking-tight">
-              One link, <span className="gradient-text">Native Power.</span>
-            </h2>
-          </ScrollFadeIn>
-          <div className="grid sm:grid-cols-3 gap-8 md:gap-12">
-            <StepItem icon={ClipboardPaste} step="01" title="Paste any URL" desc="Paste your YouTube video or Instagram post." />
-            <StepItem icon={Zap} step="02" title="Magic Deep Link" desc="We generate a high-performance redirect." />
-            <StepItem icon={Share2} step="03" title="Viral Growth" desc="Share anywhere. Watch your engagement soar." />
-          </div>
+      {/* Platform Marquee */}
+      <section id="platform" className="py-32 overflow-hidden border-b border-slate-100">
+        <div className="text-center mb-16">
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Integrated with every major platform</p>
         </div>
-      </section>
-
-      {/* Platforms */}
-      <section className="py-24 border-y border-border bg-card overflow-hidden">
         <div className="flex animate-marquee whitespace-nowrap gap-12 w-max items-center">
           {[...platforms, ...platforms].map((p, i) => (
-            <div key={`${p.name}-${i}`} className="flex items-center gap-4 px-8 py-6 rounded-3xl border border-border shadow-sm hover:border-primary transition-colors bg-background">
+            <div key={`${p.name}-${i}`} className="flex items-center gap-4 px-10 py-6 rounded-[2.5rem] border border-slate-200 bg-white shadow-sm hover:border-primary/50 transition-colors">
               <p.icon className="h-8 w-8 text-primary" />
-              <span className="text-lg font-display font-bold">{p.name}</span>
+              <span className="text-xl font-display font-bold tracking-tighter text-slate-900">{p.name}</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 md:py-32 px-4 md:px-6 text-center">
-        <div className="container mx-auto max-w-3xl bg-primary text-primary-foreground rounded-[32px] md:rounded-[60px] p-10 md:p-16 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent)]" />
+      <section className="py-48 px-6 text-center relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[180px] -z-10" />
+        <div className="container mx-auto max-w-4xl">
           <ScrollFadeIn>
-            <h2 className="text-3xl md:text-5xl font-display font-bold mb-6 md:mb-8 leading-tight text-white">Ready to increase your <br />engagement by 40%?</h2>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="secondary" size="lg" className="h-14 md:h-16 px-8 md:px-10 rounded-2xl text-md font-bold" asChild>
-                <Link to={session ? "/dashboard" : "/auth/signup"}>
-                  {session ? "Go to Dashboard" : "Get Your Free Links"}
+            <h2 className="text-5xl md:text-8xl font-display font-bold mb-10 tracking-tighter leading-[0.85] text-slate-900">
+              Ready to enter the <br /> <span className="text-primary">Elite tier?</span>
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Button size="lg" className="h-16 px-12 rounded-full text-lg font-black uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800 shadow-2xl" asChild>
+                <Link to={session ? "/dashboard/hub" : "/auth/signup"}>
+                  {session ? "Go to Dashboard" : "Join TapOpen Now"}
                 </Link>
               </Button>
-            </div>
-            <p className="mt-6 md:mt-8 text-[10px] md:text-sm font-bold uppercase tracking-widest opacity-80">No credit card required for free tier</p>
-            <div className="mt-4 flex items-center justify-center gap-2 opacity-60">
-              <AlertCircle className="h-3 w-3 md:h-4 md:w-4" />
-              <p className="text-[9px] md:text-xs font-bold uppercase tracking-widest">Links expire after 28 days of inactivity</p>
+              <div className="flex flex-col items-start gap-1">
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(i => <Sparkles key={i} className="w-4 h-4 text-yellow-500 fill-yellow-500" />)}
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Trusted by 10,000+ creators</p>
+              </div>
             </div>
           </ScrollFadeIn>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 md:py-12 px-4 md:px-6 border-t border-border">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
-            <span className="font-display font-bold text-base tracking-tighter">TapOpen</span>
+      <footer className="py-24 px-6 border-t border-slate-100 bg-slate-50">
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid md:grid-cols-4 gap-12 mb-20">
+            <div className="col-span-2 space-y-6">
+               <Link to="/" className="flex items-center gap-2 group">
+                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-[0_4px_12px_rgba(59,130,246,0.3)] group-hover:rotate-12 transition-transform">
+                  <Zap className="w-5 h-5 text-white fill-white" />
+                </div>
+                <span className="font-display text-2xl font-bold tracking-tighter text-slate-900">TapOpen</span>
+              </Link>
+              <p className="text-slate-400 max-w-xs leading-relaxed font-medium">The definitive platform for the next generation of creators, professionals, and digital nomads.</p>
+            </div>
+            <div>
+              <h4 className="text-slate-900 font-bold mb-6 text-sm uppercase tracking-widest">Platform</h4>
+              <ul className="space-y-4 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                <li><a href="#" className="hover:text-primary transition-colors">Features</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Portfolio</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Blogging</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-slate-900 font-bold mb-6 text-sm uppercase tracking-widest">Support</h4>
+              <ul className="space-y-4 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Terms</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Privacy</a></li>
+              </ul>
+            </div>
           </div>
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground text-center">© 2025 TapOpen Inc. • Every Tap. Native App.</p>
-          <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <a href="#" className="hover:text-primary">Terms</a>
-            <a href="#" className="hover:text-primary">Privacy</a>
+          <div className="pt-12 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">© 2025 TapOpen Inc. Every Tap. Native Power.</p>
+            <div className="flex gap-8 text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">
+               <a href="#" className="hover:text-slate-900 transition-colors">Twitter</a>
+               <a href="#" className="hover:text-slate-900 transition-colors">Instagram</a>
+               <a href="#" className="hover:text-slate-900 transition-colors">LinkedIn</a>
+            </div>
           </div>
         </div>
       </footer>
@@ -180,24 +258,25 @@ const LandingPage = () => {
   );
 };
 
-const ProblemItem = ({ title, desc }: { title: string; desc: string }) => (
-  <div className="flex gap-4">
-    <CheckCircle2 className="h-6 w-6 text-primary shrink-0" />
-    <div>
-      <h3 className="text-xl font-bold mb-1">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed">{desc}</p>
+const FeatureCard = ({ icon: Icon, title, desc, color }: { icon: any; title: string; desc: string; color: string }) => (
+  <div className="group relative p-8 rounded-[2.5rem] bg-white border border-slate-200 hover:border-primary/20 transition-all hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.05)] text-left">
+    <div className={`w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mb-8 border border-slate-100 group-hover:scale-110 transition-transform ${color}`}>
+      <Icon className="w-6 h-6" />
     </div>
+    <h3 className="text-2xl font-bold mb-4 tracking-tighter text-slate-900">{title}</h3>
+    <p className="text-slate-400 leading-relaxed text-sm font-medium">{desc}</p>
   </div>
 );
 
-const StepItem = ({ icon: Icon, step, title, desc }: { icon: any; step: string; title: string; desc: string }) => (
-  <div className="group relative">
-    <div className="mb-8 w-24 h-24 rounded-[32px] gradient-bg flex items-center justify-center mx-auto shadow-2xl group-hover:scale-110 transition-transform duration-500">
-      <Icon className="h-10 w-10 text-primary-foreground" />
-      <span className="absolute -top-4 -right-4 w-12 h-12 bg-background border border-border rounded-full flex items-center justify-center text-xs font-bold font-mono shadow-lg text-primary">{step}</span>
+const BenefitItem = ({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) => (
+  <div className="flex gap-6 items-start">
+    <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center shrink-0">
+      <Icon className="w-5 h-5 text-primary" />
     </div>
-    <h3 className="text-2xl font-bold mb-3">{title}</h3>
-    <p className="text-muted-foreground leading-relaxed">{desc}</p>
+    <div>
+      <h4 className="text-xl font-bold mb-1 tracking-tight text-slate-900">{title}</h4>
+      <p className="text-slate-400 text-sm leading-relaxed font-medium">{desc}</p>
+    </div>
   </div>
 );
 

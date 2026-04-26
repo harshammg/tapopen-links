@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
-  Trash2, Layout, Loader2, Save, Globe, User, Mail, MapPin, Eye, Plus, ShoppingBag, GripVertical
+  Trash2, Layout, Loader2, Save, Globe, User, Mail, MapPin, Eye, Plus, ShoppingBag, GripVertical, Search
 } from "lucide-react";
 import { linkService } from "@/services/linkService";
 import { toast } from "sonner";
@@ -79,7 +79,10 @@ export const LinkPage: React.FC = () => {
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [blogs, setBlogs] = useState<any[]>([]);
   const [newLink, setNewLink] = useState<Partial<Link>>({ title: "", url: "", type: "regular", category: "links" });
+  const [newHeader, setNewHeader] = useState<Partial<Link>>({ title: "", type: "header", category: "links" });
   const [isCreatingLink, setIsCreatingLink] = useState(false);
+  const [linksSearch, setLinksSearch] = useState("");
+  const [storeSearch, setStoreSearch] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -90,7 +93,7 @@ export const LinkPage: React.FC = () => {
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
         if (profileData) setProfile(profileData);
         
-        const { data: linkData } = await supabase.from("links").select("*").eq("user_id", session.user.id).order("sort_order", { ascending: true });
+        const { data: linkData } = await supabase.from("links").select("*").eq("user_id", session.user.id).or("is_quick.is.null,is_quick.eq.false").order("sort_order", { ascending: true });
         if (linkData) {
           setLinks(linkData.map(l => ({
             id: l.id, title: l.title || "",
@@ -120,13 +123,13 @@ export const LinkPage: React.FC = () => {
       const slug = nanoid(6);
       const created = await linkService.createLink({
         original_url: newLink.url || "", slug, user_id: session.user.id,
-        title: newLink.title as string, type: newLink.type || "regular", category: newLink.category || "links",
+        title: newLink.title as string, type: "regular", category: newLink.category || "links",
         active: true, sort_order: links.length
       });
       setLinks([...links, {
         id: created.id, title: newLink.title as string,
         url: `${window.location.origin}/${created.slug}`, originalUrl: newLink.url,
-        type: (newLink.type as any) || "regular", category: (newLink.category as any) || "links", active: true, slug: created.slug, sort_order: links.length
+        type: "regular", category: (newLink.category as any) || "links", active: true, slug: created.slug, sort_order: links.length
       }]);
       setNewLink({ title: "", url: "", type: "regular", category: "links" });
       toast.success("Link added!");
@@ -134,7 +137,7 @@ export const LinkPage: React.FC = () => {
   };
 
   const addHeader = async () => {
-    if (!newLink.title) return toast.error("Header title required");
+    if (!newHeader.title) return toast.error("Header title required");
     setIsCreatingLink(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -142,15 +145,15 @@ export const LinkPage: React.FC = () => {
       const slug = `header-${nanoid(6)}`;
       const created = await linkService.createLink({
         original_url: "", slug, user_id: session.user.id,
-        title: newLink.title as string, type: "header", category: newLink.category || "links",
+        title: newHeader.title as string, type: "header", category: newHeader.category || "links",
         active: true, sort_order: links.length
       });
       setLinks([...links, {
-        id: created.id, title: newLink.title as string,
+        id: created.id, title: newHeader.title as string,
         url: "", originalUrl: "",
-        type: "header", category: (newLink.category as any) || "links", active: true, slug: created.slug, sort_order: links.length
+        type: "header", category: (newHeader.category as any) || "links", active: true, slug: created.slug, sort_order: links.length
       }]);
-      setNewLink({ title: "", url: "", type: "regular", category: "links" });
+      setNewHeader({ title: "", type: "header", category: "links" });
       toast.success("Header added!");
     } catch (err) { toast.error("Failed to add header"); } finally { setIsCreatingLink(false); }
   };
@@ -287,6 +290,32 @@ export const LinkPage: React.FC = () => {
                   Add Link
                 </Button>
               </div>
+              {/* Category selector for link */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Add to:</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setNewLink({...newLink, category: 'links'})}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      (newLink.category === 'links' || !newLink.category)
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Layout className="w-3 h-3" /> Links
+                  </button>
+                  <button
+                    onClick={() => setNewLink({...newLink, category: 'store'})}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      newLink.category === 'store'
+                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
+                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <ShoppingBag className="w-3 h-3" /> Store
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="pt-6 border-t border-border/50 space-y-4">
@@ -295,11 +324,11 @@ export const LinkPage: React.FC = () => {
               </h3>
               <div className="flex gap-3">
                 <Input 
-                  value={newLink.type === 'header' ? newLink.title : ""} 
-                  onChange={e => setNewLink({...newLink, title: e.target.value, type: 'header'})} 
+                  value={newHeader.title || ""} 
+                  onChange={e => setNewHeader({...newHeader, title: e.target.value})} 
                   placeholder="Header Title (e.g. My Projects, Social Links...)" 
                   className="h-12 rounded-xl bg-muted/50 border-transparent focus:bg-background transition-all"
-                  onKeyDown={(e) => e.key === 'Enter' && newLink.type === 'header' && addHeader()}
+                  onKeyDown={(e) => e.key === 'Enter' && addHeader()}
                 />
                 <Button 
                   variant="outline"
@@ -311,6 +340,32 @@ export const LinkPage: React.FC = () => {
                   Add Header
                 </Button>
               </div>
+              {/* Category selector for header */}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Add to:</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setNewHeader({...newHeader, category: 'links'})}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      (newHeader.category === 'links' || !newHeader.category)
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Layout className="w-3 h-3" /> Links
+                  </button>
+                  <button
+                    onClick={() => setNewHeader({...newHeader, category: 'store'})}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                      newHeader.category === 'store'
+                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
+                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <ShoppingBag className="w-3 h-3" /> Store
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -318,46 +373,76 @@ export const LinkPage: React.FC = () => {
           <div className="space-y-12">
             {/* Standard Links */}
             <div className="space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-primary ml-2 flex items-center gap-2">
-                <Layout className="w-4 h-4" /> Standard Links
-              </h3>
+              <div className="flex items-center justify-between ml-2">
+                <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                  <Layout className="w-4 h-4" /> Standard Links
+                  {linksSearch && <span className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{standardLinks.filter(l => l.title.toLowerCase().includes(linksSearch.toLowerCase())).length} results</span>}
+                </h3>
+              </div>
+              {/* Links Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+                <Input
+                  value={linksSearch}
+                  onChange={e => setLinksSearch(e.target.value)}
+                  placeholder="Search links..."
+                  className="h-9 pl-9 rounded-xl bg-muted/40 border-transparent text-xs focus:bg-background transition-all"
+                />
+              </div>
               {standardLinks.length === 0 ? (
                 <div className="p-8 text-center border-2 border-dashed border-border rounded-[2.5rem] text-muted-foreground text-xs italic">
                   No standard links yet.
                 </div>
               ) : (
                 <Reorder.Group axis="y" values={standardLinks} onReorder={(vals) => onReorder(vals, "links")} className="space-y-3">
-                  {standardLinks.map((link) => (
-                    <LinkItem 
-                      key={link.id} 
-                      link={link} 
-                      onToggleCategory={toggleCategory}
-                      onDelete={deleteLink}
-                    />
-                  ))}
+                  {standardLinks
+                    .filter(l => !linksSearch || l.title.toLowerCase().includes(linksSearch.toLowerCase()))
+                    .map((link) => (
+                      <LinkItem 
+                        key={link.id} 
+                        link={link} 
+                        onToggleCategory={toggleCategory}
+                        onDelete={deleteLink}
+                      />
+                    ))}
                 </Reorder.Group>
               )}
             </div>
 
             {/* Digital Store */}
             <div className="space-y-4">
-              <h3 className="text-sm font-black uppercase tracking-widest text-emerald-500 ml-2 flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" /> Digital Store Items
-              </h3>
+              <div className="flex items-center justify-between ml-2">
+                <h3 className="text-sm font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4" /> Digital Store Items
+                  {storeSearch && <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">{storeLinks.filter(l => l.title.toLowerCase().includes(storeSearch.toLowerCase())).length} results</span>}
+                </h3>
+              </div>
+              {/* Store Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+                <Input
+                  value={storeSearch}
+                  onChange={e => setStoreSearch(e.target.value)}
+                  placeholder="Search store items..."
+                  className="h-9 pl-9 rounded-xl bg-emerald-500/5 border-emerald-500/10 text-xs focus:bg-background transition-all"
+                />
+              </div>
               {storeLinks.length === 0 ? (
                 <div className="p-8 text-center border-2 border-dashed border-emerald-500/10 rounded-[2.5rem] text-muted-foreground text-xs italic bg-emerald-500/5">
                   Your store is currently empty.
                 </div>
               ) : (
                 <Reorder.Group axis="y" values={storeLinks} onReorder={(vals) => onReorder(vals, "store")} className="space-y-3">
-                  {storeLinks.map((link) => (
-                    <LinkItem 
-                      key={link.id} 
-                      link={link} 
-                      onToggleCategory={toggleCategory}
-                      onDelete={deleteLink}
-                    />
-                  ))}
+                  {storeLinks
+                    .filter(l => !storeSearch || l.title.toLowerCase().includes(storeSearch.toLowerCase()))
+                    .map((link) => (
+                      <LinkItem 
+                        key={link.id} 
+                        link={link} 
+                        onToggleCategory={toggleCategory}
+                        onDelete={deleteLink}
+                      />
+                    ))}
                 </Reorder.Group>
               )}
             </div>

@@ -32,12 +32,12 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     const checkSession = async () => {
       if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate("/dashboard");
+      if (session) navigate("/dashboard/hub");
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) navigate("/dashboard");
+      if (event === 'SIGNED_IN' && session) navigate("/dashboard/hub");
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -102,7 +102,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
         if (authData.session) {
           toast.success("Welcome to TapOpen!");
-          navigate("/dashboard");
+          navigate("/dashboard/hub");
         } else {
           toast.success("Account created! Please check your email to confirm.");
           navigate("/auth/login");
@@ -140,7 +140,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         }
 
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        navigate("/dashboard/hub");
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -176,7 +176,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/dashboard` }
+        options: { redirectTo: `${window.location.origin}/dashboard/hub` }
       });
       if (error) throw error;
     } catch (error: any) {

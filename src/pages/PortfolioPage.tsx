@@ -63,20 +63,21 @@ const PortfolioPage = () => {
       // Fetch Profile Details
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("summary, contact_email, location, website, skills, education, linkedin_url, resume_url")
+        .select("customization")
         .eq("id", session.user.id)
         .single();
 
-      if (profileData) {
+      if (profileData?.customization?.portfolio) {
+        const port = profileData.customization.portfolio;
         setProfile({
-          summary: profileData.summary || "",
-          contact_email: profileData.contact_email || "",
-          location: profileData.location || "",
-          website: profileData.website || "",
-          skills: profileData.skills || [],
-          education: profileData.education || [],
-          linkedin_url: profileData.linkedin_url || "",
-          resume_url: profileData.resume_url || ""
+          summary: port.summary || "",
+          contact_email: port.contact_email || "",
+          location: port.location || "",
+          website: port.website || "",
+          skills: port.skills || [],
+          education: port.education || [],
+          linkedin_url: port.linkedin_url || "",
+          resume_url: port.resume_url || ""
         });
       }
 
@@ -101,15 +102,23 @@ const PortfolioPage = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      const { data: currentProfile } = await supabase.from("profiles").select("customization").eq("id", session.user.id).maybeSingle();
+      
+      const newCustomization = {
+        ...(currentProfile?.customization || {}),
+        portfolio: profile
+      };
+
       const { error } = await supabase
         .from("profiles")
-        .update(profile)
+        .update({ customization: newCustomization })
         .eq("id", session.user.id);
 
       if (error) throw error;
       toast.success("Professional profile updated!");
-    } catch (err) {
-      toast.error("Failed to save changes");
+    } catch (err: any) {
+      console.error("Save error:", err);
+      toast.error(`Save failed: ${err?.message || JSON.stringify(err) || "Unknown error"}`);
     } finally {
       setSaving(false);
     }
@@ -286,44 +295,7 @@ const PortfolioPage = () => {
             </div>
           </div>
 
-          {/* Section: Education */}
-          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-              <GraduationCap className="w-4 h-4" /> Education
-            </h3>
-            <div className="space-y-6">
-              {profile.education.map((edu, idx) => (
-                <div key={edu.id} className="group relative pl-4 border-l-2 border-primary/20">
-                  <button 
-                    onClick={() => setProfile({ ...profile, education: profile.education.filter((_, i) => i !== idx) })}
-                    className="absolute right-0 top-0 p-1 opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                  <h4 className="font-bold text-sm">{edu.degree}</h4>
-                  <p className="text-xs text-muted-foreground">{edu.school}</p>
-                  <p className="text-[10px] font-bold opacity-50">{edu.year}</p>
-                </div>
-              ))}
-              <div className="pt-4 space-y-3">
-                <Input placeholder="Degree / Certificate" id="new-degree" className="h-9 text-xs" />
-                <Input placeholder="University / Platform" id="new-school" className="h-9 text-xs" />
-                <Input placeholder="Year" id="new-year" className="h-9 text-xs" />
-                <Button 
-                  variant="outline" 
-                  className="w-full text-[10px] font-black uppercase"
-                  onClick={() => {
-                    const d = (document.getElementById("new-degree") as HTMLInputElement).value;
-                    const s = (document.getElementById("new-school") as HTMLInputElement).value;
-                    const y = (document.getElementById("new-year") as HTMLInputElement).value;
-                    if (d && s) {
-                      setProfile({ ...profile, education: [...profile.education, { id: Math.random().toString(), school: s, degree: d, year: y }] });
-                    }
-                  }}
-                >Add Education</Button>
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Right Column: Work Experience & Projects */}
@@ -382,6 +354,45 @@ const PortfolioPage = () => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Section: Education */}
+          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm mt-8">
+            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
+              <GraduationCap className="w-4 h-4" /> Education
+            </h3>
+            <div className="space-y-6">
+              {profile.education.map((edu, idx) => (
+                <div key={edu.id} className="group relative pl-4 border-l-2 border-primary/20">
+                  <button 
+                    onClick={() => setProfile({ ...profile, education: profile.education.filter((_, i) => i !== idx) })}
+                    className="absolute right-0 top-0 p-1 opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                  <h4 className="font-bold text-sm">{edu.degree}</h4>
+                  <p className="text-xs text-muted-foreground">{edu.school}</p>
+                  <p className="text-[10px] font-bold opacity-50">{edu.year}</p>
+                </div>
+              ))}
+              <div className="pt-4 space-y-3">
+                <Input placeholder="Degree / Certificate" id="new-degree" className="h-9 text-xs" />
+                <Input placeholder="University / Platform" id="new-school" className="h-9 text-xs" />
+                <Input placeholder="Year" id="new-year" className="h-9 text-xs" />
+                <Button 
+                  variant="outline" 
+                  className="w-full text-[10px] font-black uppercase"
+                  onClick={() => {
+                    const d = (document.getElementById("new-degree") as HTMLInputElement).value;
+                    const s = (document.getElementById("new-school") as HTMLInputElement).value;
+                    const y = (document.getElementById("new-year") as HTMLInputElement).value;
+                    if (d && s) {
+                      setProfile({ ...profile, education: [...profile.education, { id: Math.random().toString(), school: s, degree: d, year: y }] });
+                    }
+                  }}
+                >Add Education</Button>
+              </div>
+            </div>
           </div>
 
           {/* Project Adder Form (Floating) */}

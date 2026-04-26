@@ -48,8 +48,23 @@ const DashboardLayout = () => {
         .select("full_name, handle")
         .eq("id", session.user.id)
         .single();
+        
+      let currentProfile = profile;
+
+      if (error && error.code === 'PGRST116') {
+        // No profile found - auto-create one (Crucial for OAuth users)
+        const baseHandle = session.user.email?.split('@')[0] || `user_${Math.random().toString(36).substr(2, 5)}`;
+        const { data: newProfile } = await supabase.from("profiles").upsert({
+          id: session.user.id,
+          email: session.user.email,
+          handle: baseHandle,
+          full_name: session.user.user_metadata?.full_name || baseHandle
+        }).select().single();
+        
+        currentProfile = newProfile;
+      }
       
-      if (isMounted) setUserName(profile?.full_name || profile?.handle || session.user.email?.split("@")[0] || "User");
+      if (isMounted) setUserName(currentProfile?.full_name || currentProfile?.handle || session.user.email?.split("@")[0] || "User");
     };
 
     fetchUserData();

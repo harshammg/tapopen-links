@@ -5,8 +5,8 @@ export interface Link {
   user_id?: string;
   original_url: string;
   slug: string;
-  platform: string;
-  clicks: number;
+  platform?: string;
+  clicks?: number;
   clicks_daily?: Record<string, number>;
   created_at?: string;
   last_accessed_at?: string;
@@ -16,6 +16,7 @@ export interface Link {
   active?: boolean;
   sort_order?: number;
   deep_link?: boolean;
+  is_quick?: boolean;
 }
 
 export interface PlatformConfig {

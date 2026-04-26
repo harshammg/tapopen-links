@@ -159,13 +159,19 @@ const BlogsPage = () => {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Content</label>
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Content</label>
+                  <span className="text-[9px] text-muted-foreground/70 font-medium">Markdown Supported</span>
+                </div>
                 <Textarea 
-                  placeholder="Write your story here..." 
+                  placeholder="Write your story here... You can use Markdown to add links like this: [Click Here](https://example.com)" 
                   value={newPost.content}
                   onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-                  className="rounded-xl min-h-[200px] resize-none"
+                  className="rounded-xl min-h-[250px] resize-y"
                 />
+                <p className="text-[10px] text-muted-foreground ml-1 mt-1">
+                  💡 Tip: To add a link, type <code className="bg-muted px-1 py-0.5 rounded text-primary">[Your Text](https://your-url.com)</code>
+                </p>
               </div>
               <Button 
                 onClick={addPost} 
