@@ -616,31 +616,27 @@ const PublicProfile = () => {
           >
             <Share className="w-3.5 h-3.5 mr-1.5" /> Share
           </button>
-          {profile?.customization?.sections_visibility?.qr !== false && (
-            <button 
-              onClick={() => setIsScannerOpen(true)}
-              style={getButtonStyle()}
-              className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all"
-            >
-              <QrCode className="w-3.5 h-3.5 mr-1.5" /> Scan
-            </button>
-          )}
+          <button 
+            onClick={() => setIsScannerOpen(true)}
+            style={getButtonStyle()}
+            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            <QrCode className="w-3.5 h-3.5 mr-1.5" /> Scan
+          </button>
         </div>
 
-          {profile?.customization?.sections_visibility?.qr !== false && (
-            <QRScannerModal 
-              isOpen={isScannerOpen} 
-              onClose={() => setIsScannerOpen(false)}
-              onScan={(text) => {
-                setIsScannerOpen(false);
-                if (text.startsWith("http")) {
-                  window.location.href = text;
-                } else {
-                  toast.info(`Scanned: ${text}`);
-                }
-              }}
-            />
-          )}
+          <QRScannerModal 
+            isOpen={isScannerOpen} 
+            onClose={() => setIsScannerOpen(false)}
+            onScan={(text) => {
+              setIsScannerOpen(false);
+              if (text.startsWith("http")) {
+                window.location.href = text;
+              } else {
+                toast.info(`Scanned: ${text}`);
+              }
+            }}
+          />
 
           {/* QR Code Footer */}
           {profile?.customization?.sections_visibility?.qr !== false && (

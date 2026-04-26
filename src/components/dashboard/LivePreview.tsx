@@ -298,11 +298,9 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
             <button className="flex-1 min-w-[60px] h-8 flex items-center justify-center text-[7px] uppercase tracking-widest font-black bg-white/5 border border-white/10 rounded-xl transition-all" style={textColorStyle}>
               <Share className="w-2.5 h-2.5 mr-1" /> Share
             </button>
-            {profile?.customization?.sections_visibility?.qr !== false && (
-              <button className="flex-1 min-w-[60px] h-8 flex items-center justify-center text-[7px] uppercase tracking-widest font-black rounded-xl transition-all" style={{ ...getButtonStyle(), minHeight: '2rem' }}>
-                <QrCode className="w-2.5 h-2.5 mr-1" /> Scan
-              </button>
-            )}
+            <button className="flex-1 min-w-[60px] h-8 flex items-center justify-center text-[7px] uppercase tracking-widest font-black rounded-xl transition-all" style={{ ...getButtonStyle(), minHeight: '2rem' }}>
+              <QrCode className="w-2.5 h-2.5 mr-1" /> Scan
+            </button>
           </div>
 
           {/* QR Code Footer */}

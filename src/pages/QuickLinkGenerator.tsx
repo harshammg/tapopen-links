@@ -7,6 +7,7 @@ import { platforms } from "@/lib/data";
 import { supabase } from "@/lib/supabase";
 import { linkService } from "@/services/linkService";
 import LinkGeneratorForm from "@/components/dashboard/LinkGeneratorForm";
+import { format } from "date-fns";
 
 interface QuickLink {
   id: string;
@@ -14,6 +15,7 @@ interface QuickLink {
   original_url: string;
   title: string;
   created_at: string;
+  clicks: number;
 }
 
 const QuickLinkGenerator = () => {
@@ -38,7 +40,7 @@ const QuickLinkGenerator = () => {
         if (!session) return;
         const { data } = await supabase
           .from("links")
-          .select("id, slug, original_url, title, created_at")
+          .select("id, slug, original_url, title, created_at, clicks")
           .eq("user_id", session.user.id)
           .eq("is_quick", true)
           .order("created_at", { ascending: false });
@@ -91,7 +93,7 @@ const QuickLinkGenerator = () => {
       });
       const link = `${window.location.origin}/${finalSlug}`;
       setGeneratedLink(link);
-      setQuickLinks(prev => [{ id: created.id, slug: finalSlug, original_url: cleanUrl(url), title: `Quick: ${finalSlug}`, created_at: new Date().toISOString() }, ...prev]);
+      setQuickLinks(prev => [{ id: created.id, slug: finalSlug, original_url: cleanUrl(url), title: `Quick: ${finalSlug}`, created_at: new Date().toISOString(), clicks: 0 }, ...prev]);
       setUrl("");
       setCustomSlug("");
       toast.success("Quick link saved & generated!");
@@ -226,34 +228,51 @@ const QuickLinkGenerator = () => {
             {quickLinks.map((link) => {
               const fullLink = `${window.location.origin}/${link.slug}`;
               return (
-                <div key={link.id} className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between shadow-sm hover:border-primary/30 transition-all">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div key={link.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col space-y-4 shadow-sm hover:border-primary/30 transition-all">
+                  <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                       <Zap className="w-5 h-5" />
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold truncate">{fullLink}</p>
-                      <p className="text-xs text-muted-foreground truncate opacity-60">{link.original_url}</p>
+                      <p className="text-xs text-muted-foreground truncate opacity-60">
+                        {link.original_url.length > 50 ? link.original_url.substring(0, 50) + '...' : link.original_url}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4 shrink-0">
-                    <button
-                      onClick={() => handleCopy(fullLink)}
-                      className="p-2.5 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
-                      title="Copy link"
-                    >
-                      {copied === fullLink ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                    </button>
-                    <a href={fullLink} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl hover:bg-muted transition-colors text-muted-foreground hover:text-primary">
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                    <button
-                      onClick={() => handleDelete(link.slug, link.id)}
-                      className="p-2.5 rounded-xl hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-black text-primary">{link.clicks || 0}</span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Total Clicks</span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleCopy(fullLink)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 hover:bg-primary hover:text-primary-foreground transition-all text-muted-foreground text-xs font-bold"
+                        title="Copy link"
+                      >
+                        {copied === fullLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copied === fullLink ? "Copied" : "Copy"}
+                      </button>
+                      <a 
+                        href={fullLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary"
+                        title="Open Link"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                      <button
+                        onClick={() => handleDelete(link.slug, link.id)}
+                        className="p-1.5 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
