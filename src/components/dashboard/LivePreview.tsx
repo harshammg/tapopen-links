@@ -306,14 +306,14 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
           {/* QR Code Footer */}
           {profile?.customization?.sections_visibility?.qr !== false && (
             <div className="w-full pt-4 pb-6 flex flex-col items-center border-t border-white/5">
-              <div className="bg-white/70 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/10 opacity-70">
-                <QRCodeSVG 
-                  value={`${window.location.origin}/${profile.handle || ""}`}
-                  size={80}
-                  level="H"
-                  includeMargin={false}
-                />
-              </div>
+              <QRCodeSVG 
+                value={`${window.location.origin}/${profile.handle || ""}`}
+                size={80}
+                level="H"
+                includeMargin={false}
+                bgColor="transparent"
+                fgColor={textColorStyle.color as string || "#000000"}
+              />
               <div className="mt-3 flex items-center gap-1 opacity-30" style={textColorStyle}>
                 <QrCode className="w-2.5 h-2.5" />
                 <span className="text-[7px] font-black uppercase tracking-widest">Scan to view & share</span>

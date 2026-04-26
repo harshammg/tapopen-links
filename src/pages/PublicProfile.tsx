@@ -640,15 +640,15 @@ const PublicProfile = () => {
 
           {/* QR Code Footer */}
           {profile?.customization?.sections_visibility?.qr !== false && (
-            <div id="qr-section" className="mt-4 pt-2 pb-12 flex flex-col items-center border-t border-white/10 w-full max-w-sm">
-              <div className="bg-white/70 backdrop-blur-xl p-6 rounded-[3rem] shadow-2xl border border-white/20 opacity-70 transition-all hover:opacity-100">
-                <QRCodeSVG 
-                  value={window.location.href}
-                  size={160}
-                  level="H"
-                  includeMargin={false}
-                />
-              </div>
+            <div id="qr-section" className="mt-8 pt-8 pb-12 flex flex-col items-center border-t border-white/10 w-full max-w-sm">
+              <QRCodeSVG 
+                value={window.location.href}
+                size={160}
+                level="H"
+                includeMargin={false}
+                bgColor="transparent"
+                fgColor={textColorStyle.color as string || "#000000"}
+              />
               <div className="mt-8 flex items-center gap-2 opacity-30" style={textColorStyle}>
                 <QrCode className="w-5 h-5" />
                 <span className="text-xs font-black uppercase tracking-[0.3em]">Scan to view & share</span>
