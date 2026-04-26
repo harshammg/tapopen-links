@@ -67,7 +67,7 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-48 pb-32 px-6">
+      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6">
         <div className="container mx-auto text-center max-w-5xl">
           <ScrollFadeIn>
             <div className="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] mb-8 text-slate-500">
@@ -77,7 +77,7 @@ const LandingPage = () => {
           </ScrollFadeIn>
           
           <ScrollFadeIn delay={100}>
-            <h1 className="text-6xl md:text-9xl font-display font-bold mb-8 leading-[0.85] tracking-tighter text-slate-900">
+            <h1 className="text-4xl sm:text-6xl md:text-9xl font-display font-bold mb-8 leading-[1.1] md:leading-[0.85] tracking-tighter text-slate-900">
               Your Entire World <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600">In One Tap.</span>
             </h1>
@@ -92,14 +92,14 @@ const LandingPage = () => {
           <ScrollFadeIn delay={300}>
             <div className="flex flex-col items-center gap-6">
               <AnonymousGenerator session={session} />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30">Press Enter to claim your unique hub</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30 hidden sm:block">Press Enter to claim your unique hub</p>
             </div>
           </ScrollFadeIn>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="py-32 px-6 relative bg-slate-50/50">
+      <section id="features" className="py-20 md:py-32 px-6 relative bg-slate-50/50">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-24">
             <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tighter mb-6 text-slate-900">Built for the <span className="text-primary">Next Era.</span></h2>
@@ -130,13 +130,13 @@ const LandingPage = () => {
       </section>
 
       {/* Visual Demo Section */}
-      <section className="py-32 border-y border-slate-100">
+      <section className="py-20 md:py-32 border-y border-slate-100">
         <div className="container mx-auto px-6 max-w-6xl">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
             <ScrollFadeIn>
               <div className="space-y-8 text-left">
                 <div className="w-12 h-1 bg-primary rounded-full" />
-                <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-none text-slate-900">
+                <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tighter leading-tight md:leading-none text-slate-900">
                   One Hub. <br />
                   <span className="opacity-20 text-slate-400">Total Control.</span>
                 </h2>
@@ -175,7 +175,7 @@ const LandingPage = () => {
       </section>
 
       {/* Platform Marquee */}
-      <section id="platform" className="py-32 overflow-hidden border-b border-slate-100">
+      <section id="platform" className="py-20 md:py-32 overflow-hidden border-b border-slate-100">
         <div className="text-center mb-16">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Integrated with every major platform</p>
         </div>
@@ -190,11 +190,11 @@ const LandingPage = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-48 px-6 text-center relative">
+      <section className="py-32 md:py-48 px-6 text-center relative">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[180px] -z-10" />
         <div className="container mx-auto max-w-4xl">
           <ScrollFadeIn>
-            <h2 className="text-5xl md:text-8xl font-display font-bold mb-10 tracking-tighter leading-[0.85] text-slate-900">
+            <h2 className="text-4xl md:text-8xl font-display font-bold mb-10 tracking-tighter leading-tight md:leading-[0.85] text-slate-900">
               Ready to enter the <br /> <span className="text-primary">Elite tier?</span>
             </h2>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
