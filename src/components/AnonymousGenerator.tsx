@@ -101,7 +101,8 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
       try {
         await linkService.createLink({
           ...linkData,
-          user_id: session.user.id
+          user_id: session.user.id,
+          is_quick: true
         });
         toast.success("Link active! Redirecting to dashboard...");
         setIsNamingModalOpen(false);

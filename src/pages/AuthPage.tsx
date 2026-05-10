@@ -27,17 +27,21 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const getRedirectPath = () => {
+    return localStorage.getItem("pending_tapopen_link") ? "/dashboard" : "/dashboard/hub";
+  };
+
   useEffect(() => {
     if (!supabase) return;
     const checkSession = async () => {
       if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate("/dashboard/hub");
+      if (session) navigate(getRedirectPath());
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) navigate("/dashboard/hub");
+      if (event === 'SIGNED_IN' && session) navigate(getRedirectPath());
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -102,7 +106,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
         if (authData.session) {
           toast.success("Welcome to TapOpen!");
-          navigate("/dashboard/hub");
+          navigate(getRedirectPath());
         } else {
           toast.success("Account created! Please check your email to confirm.");
           navigate("/auth/login");
@@ -140,7 +144,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         }
 
         toast.success("Welcome back!");
-        navigate("/dashboard/hub");
+        navigate(getRedirectPath());
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -176,7 +180,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}/dashboard/hub` }
+        options: { redirectTo: `${window.location.origin}${getRedirectPath()}` }
       });
       if (error) throw error;
     } catch (error: any) {

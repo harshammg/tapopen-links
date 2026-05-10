@@ -65,7 +65,7 @@ export const toAppScheme = (url: string): string | null => {
 };
 
 /**
- * Android intent:// — forces Chrome to open link externally or launch the app.
+ * Android intent:// - forces Chrome to open link externally or launch the app.
  */
 export const toAndroidIntent = (url: string): string => {
   try {

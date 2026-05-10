@@ -106,11 +106,36 @@ const DashboardHub = () => {
 
   const cust = profile?.customization || {};
 
+  const actionButtons = (
+    <div className="grid grid-cols-2 gap-3">
+      <Button 
+        variant="outline" 
+        className="h-11 rounded-2xl font-bold border-border bg-card hover:bg-muted"
+        onClick={() => {
+          const url = `${window.location.origin}/${profile?.handle}`;
+          navigator.clipboard.writeText(url);
+          toast.success("Link copied to clipboard!");
+        }}
+      >
+        <Copy className="w-4 h-4 mr-2" /> Copy Link
+      </Button>
+      <Button 
+        className="h-11 rounded-2xl font-bold shadow-xl bg-primary text-primary-foreground hover:bg-primary/90"
+        onClick={() => window.open(`/${profile?.handle}`, "_blank")}
+      >
+        <ExternalLink className="w-4 h-4 mr-2" /> View Live
+      </Button>
+    </div>
+  );
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 pb-32">
       <div className="mb-12">
         <h1 className="text-4xl font-bold tracking-tight mb-2">My Dashboard</h1>
-        <p className="text-muted-foreground">Manage your entire digital world and appearance.</p>
+        <p className="text-muted-foreground mb-6">Manage your entire digital world and appearance.</p>
+        <div className="lg:hidden">
+          {actionButtons}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -336,26 +361,8 @@ const DashboardHub = () => {
         {/* Right: Real-time Live Preview */}
         <div className="lg:col-span-4 sticky top-24">
           <div className="space-y-6">
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Button 
-                  variant="outline" 
-                  className="h-11 rounded-2xl font-bold bg-white/5 border-white/10 hover:bg-white/10"
-                  onClick={() => {
-                    const url = `${window.location.origin}/${profile?.handle}`;
-                    navigator.clipboard.writeText(url);
-                    toast.success("Link copied to clipboard!");
-                  }}
-                >
-                  <Copy className="w-4 h-4 mr-2" /> Copy Link
-                </Button>
-                <Button 
-                  className="h-11 rounded-2xl font-bold shadow-xl"
-                  onClick={() => window.open(`/${profile?.handle}`, "_blank")}
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" /> View Live
-                </Button>
-              </div>
+            <div className="hidden lg:flex flex-col gap-3">
+              {actionButtons}
             </div>
 
             <div className="text-center">

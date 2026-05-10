@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Clash Display"', '"Syne"', 'sans-serif'],
-        body: ['"DM Sans"', 'sans-serif'],
+        display: ['"Space Grotesk"', 'sans-serif'],
+        body: ['"Space Grotesk"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {

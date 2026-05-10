@@ -49,7 +49,8 @@ export const useLinks = () => {
             platform: pendingLink.platform,
             slug: pendingLink.slug,
             user_id: session.user.id,
-            clicks: 0
+            clicks: 0,
+            is_quick: true
           });
           setNewlyCreatedSlugs(prev => [...prev, pendingLink.slug]);
           toast.success("Successfully claimed your link!");
@@ -61,7 +62,8 @@ export const useLinks = () => {
               platform: pendingLink.platform,
               slug: randomSlug,
               user_id: session.user.id,
-              clicks: 0
+              clicks: 0,
+              is_quick: true
             });
             setNewlyCreatedSlugs(prev => [...prev, randomSlug]);
             toast.success("Linked claimed with a unique alias!");
