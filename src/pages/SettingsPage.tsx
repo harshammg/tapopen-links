@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Settings, Shield, Key, Trash2, Check, Loader2, 
@@ -84,6 +84,22 @@ const SettingsPage = () => {
     }
   }, []);
 
+  const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    if (loading) return;
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [profile, loading]);
+
   const handleSave = async () => {
     try {
       setSaveStatus(true);
@@ -101,9 +117,8 @@ const SettingsPage = () => {
         .eq("id", session.user.id);
 
       if (error) throw error;
-      toast.success("Settings saved successfully!");
     } catch (error: any) {
-      toast.error(error.message || "Error saving settings");
+      console.error(error.message || "Error saving settings");
     } finally {
       setTimeout(() => setSaveStatus(false), 2000);
     }
@@ -189,9 +204,16 @@ const SettingsPage = () => {
     <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
       {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
       <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
-        <div className="mb-6 md:mb-12">
-          <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Account Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage your creator identity, security, and preferences.</p>
+        <div className="mb-6 md:mb-12 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Account Settings</h1>
+            <p className="text-sm text-muted-foreground">Manage your creator identity, security, and preferences.</p>
+          </div>
+          {saveStatus && (
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-bold uppercase tracking-widest animate-in fade-in">
+              <Check className="w-3 h-3" /> Auto-saved
+            </div>
+          )}
         </div>
 
         <div className="space-y-10">
@@ -346,12 +368,6 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      <div className="mt-8 sticky bottom-6 z-10 flex justify-end">
-        <Button variant="gradient" className="h-14 px-12 rounded-2xl text-md font-bold shadow-2xl shadow-primary/30 min-w-[200px]" onClick={handleSave}>
-          {saveStatus ? <Check className="h-5 w-5 mr-2" /> : null}
-          {saveStatus ? "Changes Saved!" : "Save All Changes"}
-        </Button>
-      </div>
       </div>
     </div>
   );

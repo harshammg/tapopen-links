@@ -8,7 +8,6 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LivePreview } from "@/components/dashboard/LivePreview";
 
 const DashboardHub = () => {
   const navigate = useNavigate();
@@ -140,31 +139,7 @@ const DashboardHub = () => {
 
   return (
     <>
-      {/* Mobile Preview Overlay */}
-      {showMobilePreview && (
-        <div className="fixed inset-0 z-[100] bg-background xl:hidden flex flex-col items-center justify-center p-6">
-          <Button 
-            className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
-            onClick={() => setShowMobilePreview(false)}
-            variant="secondary"
-          >
-            <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Editor
-          </Button>
-          <div className="mt-16 w-full max-w-sm">
-            <LivePreview profile={profile} links={links} portfolio={portfolio} blogs={blogs} />
-          </div>
-        </div>
-      )}
 
-      {/* Mobile Floating Button */}
-      {!showMobilePreview && (
-        <Button 
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-[40] xl:hidden rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
-          onClick={() => setShowMobilePreview(true)}
-        >
-          <Eye className="w-4 h-4 mr-2" /> View Live Preview
-        </Button>
-      )}
 
     <div className="flex flex-col xl:flex-row justify-center gap-[32px] px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
       
@@ -334,12 +309,12 @@ const DashboardHub = () => {
               <div className="flex items-center gap-4">
                 <Input 
                   type="color" 
-                  value={cust.background?.value || "#ffffff"}
+                  value={cust.background?.value || "#000000"}
                   onChange={(e) => saveCustomization({ background: { type: "color", value: e.target.value } })}
                   className="w-12 h-12 p-1 rounded-xl cursor-pointer bg-transparent"
                 />
                 <Input 
-                  value={cust.background?.value || "#ffffff"}
+                  value={cust.background?.value || "#000000"}
                   onChange={(e) => saveCustomization({ background: { type: "color", value: e.target.value } })}
                   className="flex-1 h-12 font-mono text-sm rounded-xl"
                 />
@@ -358,12 +333,12 @@ const DashboardHub = () => {
                   <div className="flex items-center gap-3">
                     <Input 
                       type="color" 
-                      value={cust.buttonColor || "#1d4ed8"}
+                      value={cust.buttonColor || "#ffffff"}
                       onChange={(e) => saveCustomization({ buttonColor: e.target.value })}
                       className="w-12 h-12 p-1 rounded-xl cursor-pointer bg-transparent"
                     />
                     <Input 
-                      value={cust.buttonColor || "#1d4ed8"}
+                      value={cust.buttonColor || "#ffffff"}
                       onChange={(e) => saveCustomization({ buttonColor: e.target.value })}
                       className="flex-1 h-12 font-mono text-sm rounded-xl"
                     />
@@ -374,12 +349,12 @@ const DashboardHub = () => {
                   <div className="flex items-center gap-3">
                     <Input 
                       type="color" 
-                      value={cust.profileTextColor || "#000000"}
+                      value={cust.profileTextColor || "#ffffff"}
                       onChange={(e) => saveCustomization({ profileTextColor: e.target.value })}
                       className="w-12 h-12 p-1 rounded-xl cursor-pointer bg-transparent"
                     />
                     <Input 
-                      value={cust.profileTextColor || "#000000"}
+                      value={cust.profileTextColor || "#ffffff"}
                       onChange={(e) => saveCustomization({ profileTextColor: e.target.value })}
                       className="flex-1 h-12 font-mono text-sm rounded-xl"
                     />
@@ -398,15 +373,9 @@ const DashboardHub = () => {
             </div>
 
             <div className="text-center w-full">
-              <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-2">Live Preview</h3>
-              <p className="text-[10px] text-muted-foreground">See your changes in real-time</p>
+              <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-2">Live Profile</h3>
+              <p className="text-[10px] text-muted-foreground">Click the button above to view your live profile in a new tab.</p>
             </div>
-            <LivePreview 
-              profile={profile} 
-              links={links} 
-              portfolio={portfolio} 
-              blogs={blogs} 
-            />
             {saving && (
               <div className="flex items-center justify-center gap-2 text-primary font-black text-[10px] uppercase animate-pulse bg-primary/5 w-full py-3 rounded-2xl border border-primary/10">
                 <Loader2 className="w-3 h-3 animate-spin" /> Auto-Saving...

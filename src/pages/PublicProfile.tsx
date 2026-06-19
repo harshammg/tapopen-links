@@ -199,16 +199,14 @@ const PublicProfile = () => {
     );
   }
 
-  const customization: ProfileCustomization = profile.customization || {
-    background: { type: "color", value: "#ffffff" },
-    buttonStyle: "filled",
-    buttonColor: "#1d4ed8",
-    buttonTextColor: "auto",
-    cornerRadius: 8,
-    profileTextColor: "dark",
-  };
-
-  const { background, buttonStyle, buttonColor, buttonTextColor, cornerRadius, profileTextColor } = customization;
+  const { 
+    background = { type: "color", value: "#000000" }, 
+    buttonStyle = "filled", 
+    buttonColor = "#ffffff", 
+    buttonTextColor = "auto", 
+    cornerRadius = 8, 
+    profileTextColor = "#ffffff" 
+  } = profile.customization || {};
 
   const bgStyle: React.CSSProperties = background.type === "color"
     ? { backgroundColor: background.value }
@@ -241,13 +239,15 @@ const PublicProfile = () => {
     return luminance > 0.5 ? 'black' : 'white';
   };
 
+  const isAutoText = !buttonTextColor || buttonTextColor === "auto";
+  const customTxt = isAutoText ? getAutoTextColor(buttonColor) : buttonTextColor;
+
   const getButtonStyle = (): React.CSSProperties => {
-    const isAutoText = !buttonTextColor || buttonTextColor === "auto";
-    const customTxt = isAutoText ? getAutoTextColor(buttonColor) : buttonTextColor;
     return {
-      borderRadius: "9999px", // Standard Pill Shape
+      borderRadius: "9999px",
       backgroundColor: buttonColor,
       color: customTxt,
+      border: `1px solid ${textColorStyle.color === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)"}`,
       transition: "all 0.2s",
     };
   };
@@ -294,8 +294,7 @@ const PublicProfile = () => {
                   <button 
                     key={item.id}
                     onClick={() => setActivePage(item.id as any)}
-                    style={{ backgroundColor: buttonColor, color: getAutoTextColor(buttonColor) }}
-                    className="group relative w-full p-6 rounded-[24px] border border-black/10 shadow-lg text-left hover:brightness-110 active:scale-[0.98] transition-all overflow-hidden"
+                    className="group relative w-full p-6 rounded-[24px] border border-current/10 bg-current/5 backdrop-blur-md shadow-lg text-left hover:bg-current/10 active:scale-[0.98] transition-all overflow-hidden"
                   >
                     <div className="flex items-center gap-4 relative z-10">
                       <div>
@@ -584,7 +583,7 @@ const PublicProfile = () => {
                 <ArrowRight className="w-3 h-3 rotate-180" /> Back to Hub
               </button>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {blogs.map(post => (
                   <div 
                     key={post.id} 

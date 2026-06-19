@@ -8,13 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { linkService } from "@/services/linkService";
 import LinkGeneratorForm from "@/components/dashboard/LinkGeneratorForm";
 import { format, subDays, startOfDay, isSameDay } from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import AnalyticsModal from "@/components/dashboard/AnalyticsModal";
 
 interface QuickLink {
   id: string;
@@ -301,101 +295,31 @@ const QuickLinkGenerator = () => {
           </div>
         )}
       </div>
-      {/* Analysis Popup */}
-      <Dialog open={analysisLink !== null} onOpenChange={(open) => !open && setAnalysisLink(null)}>
-        <DialogContent className="sm:max-w-[500px] bg-card border-border rounded-[32px] p-0 overflow-hidden shadow-2xl">
-          <div className="bg-primary/5 p-8 border-b border-border text-center relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-8 opacity-10">
-                <Zap className="w-24 h-24 text-primary" />
-             </div>
-             <DialogHeader>
-               <DialogTitle className="text-2xl font-display font-bold mb-2">
-                 {analysisLink === "global" ? "7-Day Analysis" : "Link Performance"}
-               </DialogTitle>
-               <DialogDescription className="text-muted-foreground font-medium truncate px-4">
-                 {analysisLink === "global" 
-                   ? "Total click performance across all quick links" 
-                   : `Analytics for ${analysisLink?.slug}`}
-               </DialogDescription>
-             </DialogHeader>
-          </div>
 
-          <div className="p-8">
-            <div className="flex items-end justify-between h-48 gap-2 mb-8">
-              {Array.from({ length: 7 }).map((_, i) => {
-                const day = subDays(new Date(), 6 - i);
-                const dayKey = format(day, 'yyyy-MM-dd');
-                
-                // Calculate clicks for this specific day
-                const dayClicks = analysisLink === "global" 
-                  ? quickLinks.reduce((sum, link) => sum + (link.clicks_daily?.[dayKey] || 0), 0)
-                  : (analysisLink?.clicks_daily?.[dayKey] || 0);
-
-                // For visual scaling
-                const maxClicks = analysisLink === "global"
-                  ? Math.max(...Array.from({ length: 7 }).map((_, j) => {
-                      const dk = format(subDays(new Date(), 6 - j), 'yyyy-MM-dd');
-                      return quickLinks.reduce((s, l) => s + (l.clicks_daily?.[dk] || 0), 0);
-                    }), 1)
-                  : Math.max(...Object.values(analysisLink?.clicks_daily || {}), 1);
-
-                const heightPercent = (dayClicks / maxClicks) * 100;
-
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
-                    <div className="relative w-full flex justify-center">
-                       <div 
-                         className="w-full max-w-[32px] bg-primary/20 rounded-t-lg group-hover:bg-primary transition-all duration-500 ease-out flex items-end justify-center overflow-hidden"
-                         style={{ height: `${Math.max(heightPercent, 5)}%` }}
-                       >
-                         <div className="w-full h-1/2 bg-gradient-to-t from-primary/50 to-transparent" />
-                       </div>
-                       <div className="absolute -top-6 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-md pointer-events-none">
-                         {dayClicks}
-                       </div>
-                    </div>
-                    <div className="text-[10px] font-black uppercase tracking-tighter text-muted-foreground/40 group-hover:text-primary transition-colors">
-                      {format(day, 'EEE')}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-               <div className="p-4 rounded-2xl bg-muted/30 border border-border">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Peak Day</p>
-                  <p className="text-lg font-bold">
-                    {(() => {
-                       const dailyTotals = Array.from({ length: 7 }).map((_, i) => {
-                         const d = subDays(new Date(), 6 - i);
-                         const dk = format(d, 'yyyy-MM-dd');
-                         return { 
-                           total: analysisLink === "global"
-                             ? quickLinks.reduce((s, l) => s + (l.clicks_daily?.[dk] || 0), 0)
-                             : (analysisLink?.clicks_daily?.[dk] || 0),
-                           date: d
-                         };
-                       });
-                       const peak = dailyTotals.reduce((p, c) => c.total > p.total ? c : p, dailyTotals[0]);
-                       return peak.total > 0 ? format(peak.date, 'EEEE') : "N/A";
-                    })()}
-                  </p>
-               </div>
-               <div className="p-4 rounded-2xl bg-muted/30 border border-border">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    {analysisLink === "global" ? "Avg/Day" : "Total Clicks"}
-                  </p>
-                  <p className="text-lg font-bold">
-                    {analysisLink === "global" 
-                      ? Math.round(quickLinks.reduce((acc, link) => acc + (link.clicks || 0), 0) / 7)
-                      : (analysisLink?.clicks || 0)}
-                  </p>
-               </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AnalyticsModal 
+        isOpen={!!analysisLink} 
+        onClose={() => setAnalysisLink(null)} 
+        link={
+          analysisLink === "global" 
+            ? {
+                id: "global",
+                slug: "All Quick Links",
+                title: "Global Quick Links",
+                original_url: "",
+                type: "regular",
+                category: "links",
+                active: true,
+                clicks: quickLinks.reduce((acc, l) => acc + (l.clicks || 0), 0),
+                clicks_daily: quickLinks.reduce((acc, l) => {
+                  Object.keys(l.clicks_daily || {}).forEach(date => {
+                    acc[date] = (acc[date] || 0) + (l.clicks_daily![date] || 0);
+                  });
+                  return acc;
+                }, {} as Record<string, number>)
+              } as any
+            : analysisLink as any
+        } 
+      />
     </div>
   );
 };

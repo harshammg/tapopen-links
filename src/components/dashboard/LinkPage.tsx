@@ -4,12 +4,11 @@ import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Trash2, Layout, Loader2, Save, Globe, User, Mail, MapPin, Eye, Plus, ShoppingBag, GripVertical, Search, ArrowRight
+  Trash2, Layout, Loader2, Save, Globe, User, Mail, MapPin, Eye, Plus, ShoppingBag, GripVertical, Search, ArrowRight, ExternalLink, Copy
 } from "lucide-react";
 import { linkService } from "@/services/linkService";
 import { toast } from "sonner";
 import { Reorder, useDragControls } from "framer-motion";
-import { LivePreview } from "@/components/dashboard/LivePreview";
 import AnalyticsModal from "@/components/dashboard/AnalyticsModal";
 
 const LinkItem = ({ link, onToggleCategory, onDelete, onAnalytics }: any) => {
@@ -484,18 +483,26 @@ export const LinkPage: React.FC = () => {
         {/* ---------------- RIGHT STICKY PANEL (320px) ---------------- */}
         <div className="hidden xl:block w-[320px] shrink-0 relative">
           <div className="sticky top-8 space-y-6 flex flex-col items-center glass-panel p-6 pb-8">
-            <div className="text-center w-full">
-              <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-2">Live Preview</h3>
-              <p className="text-[10px] text-muted-foreground">See your changes in real-time</p>
+            <div className="flex flex-col gap-4 w-full">
+              <h3 className="text-center text-xl font-bold text-white mb-2">Preview removed.</h3>
+              <Button 
+                className="h-14 rounded-2xl font-bold shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 text-lg w-full"
+                onClick={() => window.open(`/${profile?.handle}`, "_blank")}
+              >
+                <ExternalLink className="w-5 h-5 mr-2" /> View Live Profile
+              </Button>
+              <Button 
+                variant="outline"
+                className="h-14 rounded-2xl font-bold border-border bg-card hover:bg-muted text-lg w-full"
+                onClick={() => {
+                  const url = `${window.location.origin}/${profile?.handle}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success("Link copied to clipboard!");
+                }}
+              >
+                <Copy className="w-5 h-5 mr-2" /> Copy Link
+              </Button>
             </div>
-            <LivePreview 
-              profile={profile} 
-              links={links} 
-              portfolio={portfolio} 
-              blogs={blogs} 
-              initialSection="links"
-              hideTabs={true}
-            />
             {isSaving && (
               <div className="flex items-center justify-center gap-2 text-primary font-black text-[10px] uppercase animate-pulse bg-primary/5 w-full py-3 rounded-2xl border border-primary/10">
                 <Loader2 className="w-3 h-3 animate-spin" /> Auto-Saving...
