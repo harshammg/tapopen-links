@@ -223,27 +223,33 @@ const PublicProfile = () => {
         }
       : {};
 
+  const getAutoTextColor = (hexColor: string) => {
+    if (!hexColor || !hexColor.startsWith('#')) return 'white';
+    let r = 0, g = 0, b = 0;
+    if (hexColor.length === 4) {
+      r = parseInt(hexColor[1] + hexColor[1], 16);
+      g = parseInt(hexColor[2] + hexColor[2], 16);
+      b = parseInt(hexColor[3] + hexColor[3], 16);
+    } else if (hexColor.length === 7) {
+      r = parseInt(hexColor.slice(1, 3), 16);
+      g = parseInt(hexColor.slice(3, 5), 16);
+      b = parseInt(hexColor.slice(5, 7), 16);
+    } else {
+      return 'white';
+    }
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? 'black' : 'white';
+  };
+
   const getButtonStyle = (): React.CSSProperties => {
-    const txt = buttonTextColor === "auto" ? "white" : buttonTextColor;
-    const base: React.CSSProperties = {
-      borderRadius: buttonStyle === "pill" ? "9999px" : `${cornerRadius}px`,
-      color: txt,
+    const isAutoText = !buttonTextColor || buttonTextColor === "auto";
+    const customTxt = isAutoText ? getAutoTextColor(buttonColor) : buttonTextColor;
+    return {
+      borderRadius: "9999px", // Standard Pill Shape
+      backgroundColor: buttonColor,
+      color: customTxt,
       transition: "all 0.2s",
     };
-
-    switch (buttonStyle) {
-      case "filled":
-      case "pill":
-        return { ...base, backgroundColor: buttonColor };
-      case "outline":
-        return { ...base, border: `1px solid ${buttonColor}`, color: buttonColor };
-      case "soft":
-        return { ...base, backgroundColor: `${buttonColor}33`, color: buttonColor };
-      case "ghost":
-        return { ...base, backgroundColor: "transparent", color: buttonColor };
-      default:
-        return base;
-    }
   };
 
   const textColorStyle: React.CSSProperties = { color: profileTextColor && profileTextColor.startsWith('#') ? profileTextColor : (profileTextColor === "light" ? "#ffffff" : "#000000") };
@@ -258,11 +264,11 @@ const PublicProfile = () => {
   const isStoreView = (hasRegular && previewTab === "store") || (!hasRegular && hasAffiliate);
 
   return (
-    <div className="min-h-screen w-full relative flex justify-center" style={bgStyle}>
+    <div className="min-h-screen w-full relative flex justify-center text-current" style={{ ...bgStyle, ...textColorStyle }}>
       {background.type === "image" && background.overlay && <div style={overlayStyle} />}
       
       {/* Desktop / Mobile Centered Container */}
-      <div className={`relative w-full ${activePage === 'portfolio' || activePage === 'blogs' ? 'max-w-4xl' : 'max-w-md'} min-h-screen bg-transparent p-6 flex flex-col items-center space-y-6 pt-16 pb-24 transition-all duration-500`}>
+      <div className="relative w-full max-w-md min-h-screen bg-transparent p-6 flex flex-col items-center space-y-6 pt-16 pb-24 transition-all duration-500">
         
         {/* Profile Info */}
 
@@ -279,26 +285,24 @@ const PublicProfile = () => {
               {/* Hub Navigation Cards */}
               <div className="grid grid-cols-1 gap-4">
                 {[
-                  { id: "links", label: "Link Page", icon: Globe, desc: "All my important links & socials", color: "from-blue-600/20 to-blue-400/20" },
-                  { id: "portfolio", label: "Portfolio", icon: Briefcase, desc: "My professional journey & projects", color: "from-purple-600/20 to-purple-400/20" },
-                  { id: "blogs", label: "Blogs", icon: BookOpen, desc: "Read my latest articles & thoughts", color: "from-emerald-600/20 to-emerald-400/20" }
+                  { id: "links", label: "Link Page", icon: Globe, desc: "All my important links & socials" },
+                  { id: "portfolio", label: "Portfolio", icon: Briefcase, desc: "My professional journey & projects" },
+                  { id: "blogs", label: "Blogs", icon: BookOpen, desc: "Read my latest articles & thoughts" }
                 ]
                 .filter(item => profile?.customization?.sections_visibility?.[item.id] !== false)
                 .map((item) => (
                   <button 
                     key={item.id}
                     onClick={() => setActivePage(item.id as any)}
-                    className={`group relative w-full p-6 rounded-[2rem] bg-gradient-to-br ${item.color} border border-white/10 backdrop-blur-md text-left hover:scale-[1.02] active:scale-[0.98] transition-all overflow-hidden`}
+                    style={{ backgroundColor: buttonColor, color: getAutoTextColor(buttonColor) }}
+                    className="group relative w-full p-6 rounded-[24px] border border-black/10 shadow-lg text-left hover:brightness-110 active:scale-[0.98] transition-all overflow-hidden"
                   >
                     <div className="flex items-center gap-4 relative z-10">
-                      <div className="p-3 rounded-2xl bg-white/10 text-white">
-                        <item.icon className="w-5 h-5" />
-                      </div>
                       <div>
-                        <h3 className="text-lg font-bold leading-tight" style={textColorStyle}>{item.label}</h3>
-                        <p className="text-xs opacity-60" style={textColorStyle}>{item.desc}</p>
+                        <h3 className="text-lg font-bold leading-tight">{item.label}</h3>
+                        <p className="text-xs opacity-70">{item.desc}</p>
                       </div>
-                      <ArrowRight className="ml-auto w-5 h-5 opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" style={textColorStyle} />
+                      <ArrowRight className="ml-auto w-5 h-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                     </div>
                   </button>
                 ))}
@@ -314,7 +318,7 @@ const PublicProfile = () => {
                       href={l.url} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      className="group relative flex flex-col items-center justify-center p-8 rounded-[2.5rem] bg-primary text-white shadow-2xl shadow-primary/30 hover:scale-[1.02] transition-all overflow-hidden text-center"
+                      className="group relative flex flex-col items-center justify-center p-8 rounded-[2.5rem] bg-current text-white shadow-2xl shadow-current/30 hover:scale-[1.02] transition-all overflow-hidden text-center"
                     >
                       <div className="absolute top-0 right-0 p-4 opacity-20">
                         <Layout className="w-12 h-12" />
@@ -337,10 +341,10 @@ const PublicProfile = () => {
                   </div>
                   <div 
                     onClick={() => setSelectedBlog(blogs[0])}
-                    className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm cursor-pointer hover:bg-white/10 transition-colors"
+                    className="flex gap-4 p-4 rounded-2xl bg-current/5 border border-current/10 backdrop-blur-sm cursor-pointer hover:bg-current/10 transition-colors"
                   >
                     {blogs[0].image_url && (
-                      <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-white/10">
+                      <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-current/10">
                         <img src={blogs[0].image_url} alt={blogs[0].title} className="w-full h-full object-cover" />
                       </div>
                     )}
@@ -364,9 +368,17 @@ const PublicProfile = () => {
               
               {links.some(l => l.active && (!l.category || l.category === "links")) && 
                links.some(l => l.active && l.category === "store") && (
-                <div className="flex w-full p-0.5 bg-black/5 rounded-lg border border-black/5 mb-2 shrink-0">
-                  <button onClick={() => { setPreviewTab("links"); setLinkSearch(""); }} className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-md transition-all text-center ${previewTab === "links" ? "bg-white shadow-sm text-primary" : "text-slate-500"}`}>My Links</button>
-                  <button onClick={() => { setPreviewTab("store"); setLinkSearch(""); }} className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-md transition-all text-center ${previewTab === "store" ? "bg-white shadow-sm text-primary" : "text-slate-500"}`}>My Store</button>
+                <div className="flex w-full p-0.5 bg-current/5 rounded-lg border border-current/5 mb-2 shrink-0">
+                  <button 
+                    onClick={() => { setPreviewTab("links"); setLinkSearch(""); }} 
+                    style={previewTab === "links" ? { backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) } : {}}
+                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-md transition-all text-center ${previewTab === "links" ? "shadow-sm" : "opacity-50"}`}
+                  >My Links</button>
+                  <button 
+                    onClick={() => { setPreviewTab("store"); setLinkSearch(""); }} 
+                    style={previewTab === "store" ? { backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) } : {}}
+                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-md transition-all text-center ${previewTab === "store" ? "shadow-sm" : "opacity-50"}`}
+                  >My Store</button>
                 </div>
               )}
 
@@ -378,7 +390,7 @@ const PublicProfile = () => {
                   value={linkSearch}
                   onChange={e => setLinkSearch(e.target.value)}
                   placeholder={previewTab === "store" ? "Search store..." : "Search links..."}
-                  className="w-full h-8 pl-8 pr-3 rounded-xl bg-white/10 border border-white/10 text-[11px] font-medium backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-white/20 transition-all"
+                  className="w-full h-8 pl-8 pr-3 rounded-xl bg-current/10 border border-current/10 text-[11px] font-medium backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-current/20 transition-all"
                   style={{ color: textColorStyle.color }}
                 />
               </div>
@@ -424,11 +436,11 @@ const PublicProfile = () => {
               </button>
               
               {/* Main Outer Translucent Container */}
-              <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-[2.5rem] p-4 md:p-6 space-y-4 shadow-2xl">
+              <div className="bg-current/5 border border-current/10 backdrop-blur-xl rounded-[2.5rem] p-4 md:p-6 space-y-4 shadow-2xl">
                 
                 {/* Nested Box 1: Contact & Quick Stats */}
                 {(profile.customization?.portfolio?.contact_email || profile.customization?.portfolio?.location || profile.customization?.portfolio?.website || profile.customization?.portfolio?.resume_url || profile.customization?.portfolio?.linkedin_url || profile.customization?.portfolio?.summary) && (
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-5 hover:bg-white/10 transition-colors">
+                <div className="bg-current/5 border border-current/10 rounded-3xl p-6 space-y-5 hover:bg-current/10 transition-colors">
                   <div className="flex flex-wrap gap-4">
                     {profile.customization?.portfolio?.contact_email && (
                       <a href={`mailto:${profile.customization.portfolio.contact_email}`} className="flex items-center gap-2 text-xs font-bold opacity-70 hover:opacity-100 transition-opacity" style={textColorStyle}>
@@ -451,7 +463,8 @@ const PublicProfile = () => {
                   <div className="flex flex-wrap gap-3 pt-1">
                     {profile.customization?.portfolio?.resume_url && (
                     <Button 
-                      className="flex-1 h-10 rounded-2xl font-bold bg-white text-black hover:bg-white/90 shadow-xl text-xs"
+                      className="flex-1 h-10 rounded-2xl font-bold hover:opacity-90 shadow-xl text-xs"
+                      style={{ backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) }}
                       onClick={() => window.open(profile.customization!.portfolio.resume_url, '_blank')}
                     >
                       <Save className="w-3.5 h-3.5 mr-2" /> Download Resume
@@ -459,7 +472,8 @@ const PublicProfile = () => {
                     )}
                     {profile.customization?.portfolio?.linkedin_url && (
                     <Button 
-                      className="flex-1 h-10 rounded-2xl font-bold bg-white text-black hover:bg-white/90 shadow-xl text-xs"
+                      className="flex-1 h-10 rounded-2xl font-bold hover:opacity-90 shadow-xl text-xs"
+                      style={{ backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) }}
                       onClick={() => window.open(profile.customization!.portfolio.linkedin_url, '_blank')}
                     >
                       <Globe className="w-3.5 h-3.5 mr-2" /> LinkedIn Profile
@@ -469,7 +483,7 @@ const PublicProfile = () => {
                   )}
 
                   {profile.customization?.portfolio?.summary && (
-                    <div className="pt-5 border-t border-white/10">
+                    <div className="pt-5 border-t border-current/10">
                       <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2" style={textColorStyle}>About / Summary</h3>
                       <p className="text-sm leading-relaxed opacity-90" style={textColorStyle}>{profile.customization.portfolio.summary}</p>
                     </div>
@@ -479,16 +493,16 @@ const PublicProfile = () => {
 
                 {/* Nested Box 2: Experience Section */}
                 {portfolio.length > 0 && (
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-colors">
-                  <div className="p-6 border-b border-white/10 flex items-center gap-3">
+                <div className="bg-current/5 border border-current/10 rounded-3xl overflow-hidden hover:bg-current/10 transition-colors">
+                  <div className="p-6 border-b border-current/10 flex items-center gap-3">
                     <Briefcase className="w-4 h-4 opacity-50" style={textColorStyle} />
                     <h3 className="font-bold text-base" style={textColorStyle}>Work Experience</h3>
                   </div>
-                  <div className="divide-y divide-white/10">
+                  <div className="divide-y divide-current/10">
                     {portfolio.map(item => (
                       <div key={item.id} className="p-6 space-y-4">
                         <div className="flex gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-white/10 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center shadow-sm">
+                          <div className="w-12 h-12 rounded-2xl bg-current/10 overflow-hidden shrink-0 border border-current/10 flex items-center justify-center shadow-sm">
                             {item.image_url ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" /> : <Briefcase className="w-5 h-5 opacity-20" style={textColorStyle} />}
                           </div>
                           <div className="flex-1 min-w-0 pt-1">
@@ -500,12 +514,12 @@ const PublicProfile = () => {
                         {item.tags && item.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {item.tags.map(t => (
-                              <span key={t} className="px-2 py-1 bg-white/5 text-[9px] font-bold rounded-lg border border-white/10 text-white/70 shadow-sm">{t}</span>
+                              <span key={t} className="px-2 py-1 bg-current/5 text-[9px] font-bold rounded-lg border border-current/10 opacity-70 shadow-sm">{t}</span>
                             ))}
                           </div>
                         )}
                         {item.project_url && (
-                          <a href={item.project_url} target="_blank" className="inline-flex items-center px-4 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-white transition-colors">
+                          <a href={item.project_url} target="_blank" className="inline-flex items-center px-4 py-1.5 bg-current/10 hover:bg-current/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-current transition-colors">
                             <ExternalLink className="mr-2 w-3 h-3" /> View Project
                           </a>
                         )}
@@ -521,26 +535,35 @@ const PublicProfile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {profile.customization?.portfolio?.skills && profile.customization.portfolio.skills.length > 0 && (
-                      <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors">
+                      <div className="bg-current/5 border border-current/10 rounded-3xl p-6 hover:bg-current/10 transition-colors">
                         <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 flex items-center gap-2" style={textColorStyle}>
                           <Code2 className="w-3.5 h-3.5" /> Skills & Expertise
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {profile.customization.portfolio.skills.map((skill: string) => (
-                            <span key={skill} className="px-3 py-1 bg-white text-black text-[11px] font-bold rounded-xl shadow-sm hover:scale-105 transition-transform">{skill}</span>
+                            <span 
+                              key={skill} 
+                              className="px-3 py-1 text-[11px] font-bold rounded-xl shadow-sm hover:scale-105 transition-transform"
+                              style={{ 
+                                backgroundColor: textColorStyle.color, 
+                                color: getAutoTextColor(textColorStyle.color as string) 
+                              }}
+                            >
+                              {skill}
+                            </span>
                           ))}
                         </div>
                       </div>
                     )}
 
                     {profile.customization?.portfolio?.education && profile.customization.portfolio.education.length > 0 && (
-                      <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors">
+                      <div className="bg-current/5 border border-current/10 rounded-3xl p-6 hover:bg-current/10 transition-colors">
                         <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 flex items-center gap-2" style={textColorStyle}>
                           <GraduationCap className="w-3.5 h-3.5" /> Education
                         </h3>
                         <div className="space-y-5">
                           {(profile.customization.portfolio.education as Education[]).map(edu => (
-                            <div key={edu.id} className="relative pl-4 border-l-2 border-white/20">
+                            <div key={edu.id} className="relative pl-4 border-l-2 border-current/20">
                               <h4 className="text-[13px] font-bold leading-tight" style={textColorStyle}>{edu.degree}</h4>
                               <p className="text-[11px] opacity-60 mt-1" style={textColorStyle}>{edu.school}</p>
                               <p className="text-[9px] font-bold opacity-30 mt-1" style={textColorStyle}>{edu.year}</p>
@@ -566,7 +589,7 @@ const PublicProfile = () => {
                   <div 
                     key={post.id} 
                     onClick={() => setSelectedBlog(post)}
-                    className="group cursor-pointer bg-white/5 border border-white/10 backdrop-blur-md rounded-[2.5rem] overflow-hidden p-3 hover:bg-white/10 transition-colors flex flex-col"
+                    className="group cursor-pointer bg-current/5 border border-current/10 backdrop-blur-md rounded-[2.5rem] overflow-hidden p-3 hover:bg-current/10 transition-colors flex flex-col"
                   >
                     {post.image_url && (
                       <div className="aspect-video rounded-[2rem] overflow-hidden mb-4 shrink-0">
@@ -574,9 +597,9 @@ const PublicProfile = () => {
                       </div>
                     )}
                     <div className="p-5 pt-2 flex-1 flex flex-col">
-                      <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3 text-white">
+                      <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3" style={textColorStyle}>
                         <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {format(new Date(post.created_at), "MMM d")}</span>
-                        <span className="w-1 h-1 bg-white rounded-full" />
+                        <span className="w-1 h-1 bg-current rounded-full" />
                         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 3 min</span>
                       </div>
                       <h4 className="text-xl font-bold mb-3" style={textColorStyle}>{post.title}</h4>
@@ -598,7 +621,8 @@ const PublicProfile = () => {
               navigator.clipboard.writeText(url);
               toast.success("Link copied!");
             }}
-            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black bg-white/5 border border-white/10 rounded-2xl shadow-xl hover:bg-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black bg-current/5 border border-current/10 rounded-2xl shadow-xl hover:bg-current/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={textColorStyle}
           >
             <Copy className="w-3.5 h-3.5 mr-1.5" /> Copy
           </button>
@@ -612,7 +636,8 @@ const PublicProfile = () => {
                 toast.success("Link copied!");
               }
             }}
-            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black bg-white/5 border border-white/10 rounded-2xl shadow-xl hover:bg-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black bg-current/5 border border-current/10 rounded-2xl shadow-xl hover:bg-current/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={textColorStyle}
           >
             <Share className="w-3.5 h-3.5 mr-1.5" /> Share
           </button>
@@ -640,7 +665,7 @@ const PublicProfile = () => {
 
           {/* QR Code Footer */}
           {profile?.customization?.sections_visibility?.qr !== false && (
-            <div id="qr-section" className="mt-8 pt-8 pb-12 flex flex-col items-center border-t border-white/10 w-full max-w-sm">
+            <div id="qr-section" className="mt-8 pt-8 pb-12 flex flex-col items-center border-t border-current/10 w-full max-w-sm">
               <QRCodeSVG 
                 value={window.location.href}
                 size={160}
@@ -649,7 +674,7 @@ const PublicProfile = () => {
                 bgColor="transparent"
                 fgColor={textColorStyle.color as string || "#000000"}
               />
-              <div className="mt-8 flex items-center gap-2 opacity-30" style={textColorStyle}>
+              <div className="mt-8 flex items-center gap-2" style={textColorStyle}>
                 <QrCode className="w-5 h-5" />
                 <span className="text-xs font-black uppercase tracking-[0.3em]">Scan to view & share</span>
               </div>
@@ -657,7 +682,7 @@ const PublicProfile = () => {
           )}
 
         {/* Branding Footer */}
-        <div className="pt-8 pb-16 opacity-30 hover:opacity-100 transition-opacity">
+        <div className="pt-8 pb-16">
           <a href="/" className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3" style={textColorStyle}>
             <div className={`w-6 h-1 bg-current opacity-20 rounded-full`} />
             Powered by TapOpen
@@ -670,7 +695,7 @@ const PublicProfile = () => {
       {selectedBlog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div 
-            className="border border-white/20 rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden"
+            className="border border-white/20 rounded-[2.5rem] w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden"
             style={{ 
               backgroundColor: profile?.customization?.background?.value || '#1a1a1a',
               backgroundImage: profile?.customization?.background?.type === "image" ? `url(${profile.customization.background.value})` : undefined,

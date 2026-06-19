@@ -90,46 +90,79 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background relative pb-28">
-      {/* Universal Header */}
-      <header className="fixed top-3 left-3 right-3 md:top-4 md:left-4 md:right-4 z-50 bg-background/80 backdrop-blur-lg border border-border px-4 md:px-6 py-3 flex items-center justify-between rounded-full shadow-lg max-w-5xl mx-auto">
+    <div className="flex flex-col md:flex-row min-h-screen bg-transparent relative">
+      
+      {/* ---------------- MOBILE TOP HEADER ---------------- */}
+      <header className="md:hidden fixed top-4 left-4 right-4 z-50 h-[60px] bg-background/80 backdrop-blur-xl border border-border/50 rounded-full px-6 flex items-center justify-between shadow-lg shadow-black/10">
         <Link to="/" className="font-display text-xl font-bold gradient-text">TapOpen</Link>
-        <button 
-          onClick={handleLogout}
-          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-          title="Sign Out"
-        >
+        <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-destructive transition-colors">
           <LogOut className="h-5 w-5" />
         </button>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pt-20 md:pt-24">
+      {/* ---------------- DESKTOP LEFT SIDEBAR (72px -> 244px) ---------------- */}
+      <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-50 w-[72px] xl:w-[244px] bg-background border-r border-border transition-all duration-300">
+        <div className="h-[100px] flex items-center px-6">
+          <Link to="/" className="font-display text-xl xl:text-2xl font-bold gradient-text block">
+            <span className="hidden xl:inline">TapOpen</span>
+            <span className="xl:hidden">T</span>
+          </Link>
+        </div>
+        
+        <nav className="flex-1 px-3 space-y-2 mt-4">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-4 p-3 rounded-xl transition-all ${
+                  active ? "font-bold text-primary bg-primary/10" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                }`}
+                title={item.label}
+              >
+                <item.icon className={`h-6 w-6 shrink-0 ${active ? "text-primary" : ""}`} />
+                <span className="hidden xl:block text-sm font-bold tracking-wide">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+        
+        <div className="p-3 mb-4">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-4 p-3 w-full rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+            title="Sign Out"
+          >
+            <LogOut className="h-6 w-6 shrink-0" />
+            <span className="hidden xl:block text-sm font-bold">Sign Out</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* ---------------- MAIN CONTENT AREA ---------------- */}
+      {/* Mobile: pt-88px (header) + pb-110px (nav). Desktop: pl-72px/244px (sidebar) */}
+      <main className="flex-1 w-full pt-[88px] pb-[110px] md:pt-0 md:pb-0 md:pl-[72px] xl:pl-[244px] transition-all duration-300">
         <Outlet />
       </main>
 
-      {/* Universal bottom nav (Nav Dock) */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-[400px] z-50 bg-background/80 backdrop-blur-2xl border border-border flex items-center p-1.5 rounded-full shadow-2xl overflow-hidden">
+      {/* ---------------- MOBILE BOTTOM NAV ---------------- */}
+      <nav className="md:hidden fixed bottom-6 left-6 right-6 z-50 h-[56px] bg-background/80 backdrop-blur-xl border border-border/50 rounded-full flex items-center justify-around px-2 shadow-lg shadow-black/10">
         {navItems.map((item) => {
           const active = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 transition-all duration-300 rounded-full ${
-                active 
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 font-bold" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              className={`flex flex-col items-center justify-center w-10 h-10 rounded-full transition-all ${
+                active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <item.icon className={`h-4 w-4 shrink-0 ${active ? "fill-primary-foreground/20" : ""}`} />
-              <span className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${active ? "block" : "hidden sm:block"}`}>
-                {item.label}
-              </span>
+              <item.icon className={`h-4 w-4 ${active ? "fill-primary/20" : ""}`} />
             </Link>
           );
         })}
-      </div>
+      </nav>
     </div>
   );
 };

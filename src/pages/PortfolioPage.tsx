@@ -165,37 +165,38 @@ const PortfolioPage = () => {
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 pb-32">
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2">Professional Profile</h1>
-          <p className="text-muted-foreground font-medium">Build your high-impact digital resume and portfolio.</p>
+    <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+      
+      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
+      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 md:mb-12">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Professional Profile</h1>
+            <p className="text-sm md:text-base text-muted-foreground font-medium">Build your high-impact digital resume and portfolio.</p>
+          </div>
+          <div className="flex flex-col md:flex-row w-full md:w-auto gap-3 md:gap-4">
+            <Button 
+              variant="outline" 
+              className="w-full md:w-auto h-12 px-6 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 font-bold"
+              onClick={async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                const { data } = await supabase.from("profiles").select("handle").eq("id", session.user.id).single();
+                if (data?.handle) window.open(`/${data.handle}/portfolio`, "_blank");
+              }}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview
+            </Button>
+            <Button onClick={saveProfile} disabled={saving} className="w-full md:w-auto h-12 px-8 rounded-2xl shadow-xl shadow-primary/20">
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Save Changes
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <Button 
-            variant="outline" 
-            className="h-12 px-6 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 font-bold"
-            onClick={async () => {
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) return;
-              const { data } = await supabase.from("profiles").select("handle").eq("id", session.user.id).single();
-              if (data?.handle) window.open(`/${data.handle}/portfolio`, "_blank");
-            }}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            Preview
-          </Button>
-          <Button onClick={saveProfile} disabled={saving} className="h-12 px-8 rounded-2xl shadow-xl shadow-primary/20">
-            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-            Save Changes
-          </Button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        
-        {/* Left Column: Profile & Info */}
-        <div className="lg:col-span-5 space-y-8">
+        {/* Stacked Content in Feed Column */}
+        <div className="space-y-8">
           
           {/* Section: Professional Summary */}
           <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm">
@@ -225,7 +226,7 @@ const PortfolioPage = () => {
                     placeholder="hello@yourwork.com"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Location</label>
                     <Input 
@@ -294,20 +295,16 @@ const PortfolioPage = () => {
               </div>
             </div>
           </div>
-
-
         </div>
-
-        {/* Right Column: Work Experience & Projects */}
-        <div className="lg:col-span-7 space-y-8">
-          
-          {/* Work Experience Vertical List */}
+        
+        {/* Experience & Timeline block stacked below Profile block */}
+        <div className="space-y-8">
           <div className="bg-card border border-border rounded-[2rem] shadow-sm overflow-hidden">
-            <div className="p-8 border-b border-border bg-muted/20 flex justify-between items-center">
+            <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
               <h3 className="font-bold text-xl flex items-center gap-3">
                 <Briefcase className="w-6 h-6 text-primary" /> Work Experience
               </h3>
-              <Button size="sm" variant="ghost" onClick={() => setIsAddingProject(true)} className="rounded-xl">
+              <Button size="sm" variant="ghost" onClick={() => setIsAddingProject(true)} className="rounded-xl w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" /> Add Entry
               </Button>
             </div>
@@ -321,17 +318,17 @@ const PortfolioPage = () => {
               <div className="divide-y divide-border">
                 {items.map(item => (
                   <div key={item.id} className="p-8 group hover:bg-muted/5 transition-colors">
-                    <div className="flex gap-6">
-                      <div className="w-16 h-16 rounded-2xl border border-border bg-muted shrink-0 overflow-hidden flex items-center justify-center">
+                    <div className="flex gap-4 md:gap-6">
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl border border-border bg-muted shrink-0 overflow-hidden flex items-center justify-center">
                         {item.image_url ? <img src={item.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="opacity-20" />}
                       </div>
-                      <div className="flex-1 space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="text-lg font-bold group-hover:text-primary transition-colors">{item.title}</h4>
-                            <p className="text-sm font-semibold text-muted-foreground">{item.date_range || "Present"}</p>
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <div className="flex gap-2 justify-between items-start">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-base md:text-lg font-bold group-hover:text-primary transition-colors truncate">{item.title}</h4>
+                            <p className="text-xs md:text-sm font-semibold text-muted-foreground">{item.date_range || "Present"}</p>
                           </div>
-                          <button onClick={() => deleteProject(item.id)} className="p-2 opacity-0 group-hover:opacity-100 text-destructive transition-all hover:bg-destructive/10 rounded-xl">
+                          <button onClick={() => deleteProject(item.id)} className="p-2 shrink-0 opacity-100 md:opacity-0 group-hover:opacity-100 text-destructive transition-all hover:bg-destructive/10 rounded-xl">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

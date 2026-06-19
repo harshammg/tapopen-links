@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BackgroundGlow } from "@/components/ui/BackgroundGlow";
 import LandingPage from "./pages/LandingPage";
 import DashboardLayout from "./components/DashboardLayout";
 import QuickLinkGenerator from "./pages/QuickLinkGenerator";
@@ -14,17 +15,20 @@ import { LinkPage } from "./components/dashboard/LinkPage";
 import DashboardHub from "./pages/DashboardHub";
 import PortfolioPage from "./pages/PortfolioPage";
 import BlogsPage from "./pages/BlogsPage";
+import OtherProducts from "./pages/OtherProducts";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <BackgroundGlow />
       <Toaster />
       <Sonner />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/products" element={<OtherProducts />} />
           <Route path="/auth/login" element={<AuthPage mode="login" />} />
           <Route path="/auth/signup" element={<AuthPage mode="signup" />} />
           {/* Legacy redirects */}

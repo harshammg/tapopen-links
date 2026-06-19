@@ -121,8 +121,8 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="bg-card border-2 border-primary/20 rounded-[32px] p-2 shadow-2xl overflow-hidden relative group">
-        <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity -z-10 pointer-events-none" />
+      <div className="glass-panel p-2 relative group hover:border-primary/40 transition-colors">
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl -z-10 pointer-events-none" />
         
         <div className="flex flex-col md:flex-row gap-2">
           <div className="flex-1 relative">
@@ -131,12 +131,12 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
               placeholder="Paste your social link here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full h-14 md:h-16 bg-transparent border-none focus:ring-0 focus:outline-none pl-6 pr-16 text-base md:text-lg font-medium placeholder:text-muted-foreground/50"
+              className="w-full h-14 md:h-16 bg-transparent border-none focus:ring-0 focus:outline-none pl-6 pr-16 text-base md:text-lg font-medium text-white placeholder:text-gray-500"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
               <button 
                 onClick={handlePaste}
-                className="p-2 hover:bg-primary/10 rounded-xl transition-colors text-muted-foreground hover:text-primary"
+                className="p-2 hover:bg-white/10 rounded-xl transition-colors text-gray-400 hover:text-white"
                 title="Paste"
               >
                 <ClipboardPaste className="h-5 w-5" />
@@ -147,7 +147,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
           <Button 
             variant="gradient" 
             size="lg" 
-            className="h-14 md:h-16 px-8 rounded-[24px] text-base font-bold shadow-lg"
+            className="h-14 md:h-16 px-8 rounded-[1.25rem] text-base font-bold shadow-lg"
             onClick={handleGenerateClick}
             disabled={!url || isGenerating}
           >
@@ -157,7 +157,7 @@ const AnonymousGenerator = ({ session }: { session: any }) => {
         </div>
       </div>
 
-      <p className="mt-4 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground opacity-60">
+      <p className="mt-4 text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
         Supports YouTube, Instagram, Spotify, and more.
       </p>
 

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Layout, Briefcase, BookOpen, ArrowRight, Globe, 
+  Layout, Briefcase, BookOpen, ArrowRight, Globe, Eye,
   User, Check, Loader2, Palette, Box, Type, MousePointer2, Copy, ExternalLink, QrCode 
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -14,6 +14,7 @@ const DashboardHub = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -42,37 +43,46 @@ const DashboardHub = () => {
     fetchData();
   }, []);
 
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const saveCustomization = async (updates: any) => {
-    setSaving(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    // 1. INSTANT Optimistic Update for Real-Time Live Preview
+    const newCustomization = {
+      ...(profile?.customization || {
+        background: { type: "color", value: "#ffffff" },
+        buttonStyle: "filled",
+        buttonColor: "#1d4ed8",
+        buttonTextColor: "auto",
+        cornerRadius: 8,
+        profileTextColor: "dark"
+      }),
+      ...updates
+    };
 
-      const newCustomization = {
-        ...(profile?.customization || {
-          background: { type: "color", value: "#ffffff" },
-          buttonStyle: "filled",
-          buttonColor: "#1d4ed8",
-          buttonTextColor: "auto",
-          cornerRadius: 8,
-          profileTextColor: "dark"
-        }),
-        ...updates
-      };
+    setProfile((prev: any) => ({ ...prev, customization: newCustomization }));
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({ customization: newCustomization })
-        .eq("id", session.user.id);
+    // 2. Debounced Network Request
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    
+    saveTimerRef.current = setTimeout(async () => {
+      setSaving(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
 
-      if (error) throw error;
-      setProfile({ ...profile, customization: newCustomization });
-      toast.success("Appearance updated!");
-    } catch (err) {
-      toast.error("Failed to update appearance");
-    } finally {
-      setSaving(false);
-    }
+        const { error } = await supabase
+          .from("profiles")
+          .update({ customization: newCustomization })
+          .eq("id", session.user.id);
+
+        if (error) throw error;
+        // Silent save for seamless experience
+      } catch (err) {
+        toast.error("Failed to sync appearance");
+      } finally {
+        setSaving(false);
+      }
+    }, 500);
   };
 
   const saveProfile = async (updates: any) => {
@@ -97,9 +107,9 @@ const DashboardHub = () => {
   };
 
   const hubItems = [
-    { title: "Link Page", description: "Links & Store items", icon: Layout, path: "/dashboard/links", color: "bg-blue-500" },
-    { title: "Portfolio", description: "Professional Resume", icon: Briefcase, path: "/dashboard/portfolio", color: "bg-purple-500" },
-    { title: "Blogs", description: "Articles & Stories", icon: BookOpen, path: "/dashboard/blogs", color: "bg-emerald-500" }
+    { title: "Link Page", description: "Links & Store items", icon: Layout, path: "/dashboard/links" },
+    { title: "Portfolio", description: "Professional Resume", icon: Briefcase, path: "/dashboard/portfolio" },
+    { title: "Blogs", description: "Articles & Stories", icon: BookOpen, path: "/dashboard/blogs" }
   ];
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
@@ -129,28 +139,51 @@ const DashboardHub = () => {
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 pb-32">
-      <div className="mb-12">
-        <h1 className="text-4xl font-bold tracking-tight mb-2">My Dashboard</h1>
-        <p className="text-muted-foreground mb-6">Manage your entire digital world and appearance.</p>
-        <div className="lg:hidden">
-          {actionButtons}
+    <>
+      {/* Mobile Preview Overlay */}
+      {showMobilePreview && (
+        <div className="fixed inset-0 z-[100] bg-background xl:hidden flex flex-col items-center justify-center p-6">
+          <Button 
+            className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
+            onClick={() => setShowMobilePreview(false)}
+            variant="secondary"
+          >
+            <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Editor
+          </Button>
+          <div className="mt-16 w-full max-w-sm">
+            <LivePreview profile={profile} links={links} portfolio={portfolio} blogs={blogs} />
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Left: Navigation & Appearance */}
-        <div className="lg:col-span-8 space-y-10">
+      {/* Mobile Floating Button */}
+      {!showMobilePreview && (
+        <Button 
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-[40] xl:hidden rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
+          onClick={() => setShowMobilePreview(true)}
+        >
+          <Eye className="w-4 h-4 mr-2" /> View Live Preview
+        </Button>
+      )}
+
+    <div className="flex flex-col xl:flex-row justify-center gap-[32px] px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+      
+      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
+      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
+        <div className="mb-6 md:mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground mb-6">Manage your entire digital world and appearance.</p>
+          <div className="xl:hidden">
+            {actionButtons}
+          </div>
+        </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {hubItems.map((item) => (
               <button 
                 key={item.title}
                 onClick={() => navigate(item.path)}
-                className="group p-6 rounded-[2rem] bg-card border border-border hover:border-primary/50 hover:shadow-xl transition-all text-left space-y-4"
+                className="group p-6 glass-panel hover:border-primary/50 transition-all text-left space-y-4"
               >
-                <div className={`w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center text-white shadow-lg`}>
-                  <item.icon className="w-6 h-6" />
-                </div>
                 <div>
                   <h3 className="font-bold text-lg">{item.title}</h3>
                   <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
@@ -159,7 +192,7 @@ const DashboardHub = () => {
             ))}
           </div>
 
-            <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm space-y-6">
+            <div className="glass-panel p-8 space-y-6">
               <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
                 <Layout className="w-4 h-4" /> Section Visibility
               </h3>
@@ -172,7 +205,6 @@ const DashboardHub = () => {
                 ].map((sec) => (
                   <div key={sec.id} className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border">
                     <div className="flex items-center gap-3">
-                      <sec.icon className="w-4 h-4 opacity-50" />
                       <span className="text-sm font-bold">{sec.label}</span>
                     </div>
                     <input 
@@ -199,7 +231,7 @@ const DashboardHub = () => {
             </div>
 
             {/* Profile Basic Info */}
-            <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm space-y-6">
+            <div className="glass-panel p-8 space-y-6">
             <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
               <User className="w-4 h-4" /> Profile Info
             </h3>
@@ -234,9 +266,39 @@ const DashboardHub = () => {
             </div>
           </div>
 
+          {/* Theme Presets */}
+          <div className="glass-panel p-8">
+            <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
+              <Palette className="w-4 h-4" /> Theme Presets
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button 
+                onClick={() => saveCustomization({ background: { type: "color", value: "#ffffff" }, profileTextColor: "#000000", buttonColor: "#000000", buttonTextColor: "auto" })}
+                className="p-6 rounded-2xl border-2 border-border hover:border-primary hover:scale-[1.02] active:scale-[0.98] transition-all text-left bg-white text-black shadow-md"
+              >
+                <h4 className="font-bold text-lg">Light</h4>
+                <p className="text-xs opacity-60">Clean and bright</p>
+              </button>
+              <button 
+                onClick={() => saveCustomization({ background: { type: "color", value: "#000000" }, profileTextColor: "#ffffff", buttonColor: "#ffffff", buttonTextColor: "auto" })}
+                className="p-6 rounded-2xl border-2 border-border hover:border-primary hover:scale-[1.02] active:scale-[0.98] transition-all text-left bg-black text-white shadow-md"
+              >
+                <h4 className="font-bold text-lg">Dark</h4>
+                <p className="text-xs opacity-60">Sleek and professional</p>
+              </button>
+              <button 
+                onClick={() => saveCustomization({ background: { type: "color", value: "#0a0a2a" }, profileTextColor: "#00ffcc", buttonColor: "#ff00ff", buttonTextColor: "auto" })}
+                className="p-6 rounded-2xl border-2 border-[#ff00ff]/30 hover:border-[#00ffcc] hover:scale-[1.02] active:scale-[0.98] transition-all text-left bg-[#0a0a2a] shadow-[0_0_15px_rgba(255,0,255,0.2)]"
+              >
+                <h4 className="font-bold text-lg text-[#00ffcc]">Cyberpunk</h4>
+                <p className="text-xs text-[#ff00ff] opacity-80">Neon futuristic</p>
+              </button>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Landing Page Setting */}
-            <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm h-full">
+            <div className="glass-panel p-8 h-full">
               <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
                 <Globe className="w-4 h-4" /> Default Landing Page
               </h3>
@@ -255,7 +317,7 @@ const DashboardHub = () => {
             </div>
 
             {/* Background Selector */}
-            <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm h-full">
+            <div className="glass-panel p-8 h-full">
               <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
                 <Palette className="w-4 h-4" /> Background Color
               </h3>
@@ -285,7 +347,7 @@ const DashboardHub = () => {
             </div>
           </div>
 
-          <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm">
+          <div className="glass-panel p-8">
             <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-8 flex items-center gap-2">
               <MousePointer2 className="w-4 h-4" /> Button Styles & Branding
             </h3>
@@ -324,48 +386,18 @@ const DashboardHub = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Button Shape</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {["filled", "outline", "soft", "pill"].map(style => (
-                      <button 
-                        key={style}
-                        onClick={() => saveCustomization({ buttonStyle: style })}
-                        className={`py-3 rounded-xl border-2 text-[10px] font-bold uppercase transition-all ${cust.buttonStyle === style ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground"}`}
-                      >
-                        {style}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Corner Rounding</label>
-                  <input 
-                    type="range" min="0" max="24" 
-                    value={cust.cornerRadius || 8}
-                    onChange={(e) => saveCustomization({ cornerRadius: parseInt(e.target.value) })}
-                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                  <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase px-1">
-                    <span>Sharp</span>
-                    <span>Round</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Real-time Live Preview */}
-        <div className="lg:col-span-4 sticky top-24">
-          <div className="space-y-6">
-            <div className="hidden lg:flex flex-col gap-3">
+        {/* ---------------- RIGHT STICKY PANEL (320px) ---------------- */}
+        <div className="hidden xl:block w-[320px] shrink-0 relative">
+          <div className="sticky top-8 space-y-6 flex flex-col items-center glass-panel p-6 pb-8">
+            <div className="flex flex-col gap-3 w-full">
               {actionButtons}
             </div>
 
-            <div className="text-center">
+            <div className="text-center w-full">
               <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-2">Live Preview</h3>
               <p className="text-[10px] text-muted-foreground">See your changes in real-time</p>
             </div>
@@ -376,14 +408,14 @@ const DashboardHub = () => {
               blogs={blogs} 
             />
             {saving && (
-              <div className="flex items-center justify-center gap-2 text-primary font-black text-[10px] uppercase animate-pulse bg-primary/5 py-3 rounded-2xl border border-primary/10">
+              <div className="flex items-center justify-center gap-2 text-primary font-black text-[10px] uppercase animate-pulse bg-primary/5 w-full py-3 rounded-2xl border border-primary/10">
                 <Loader2 className="w-3 h-3 animate-spin" /> Auto-Saving...
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

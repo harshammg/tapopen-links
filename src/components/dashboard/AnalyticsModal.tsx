@@ -67,33 +67,34 @@ const AnalyticsModal: React.FC<AnalyticsModalProps> = ({ isOpen, onClose, link }
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorClicks" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted-foreground))" opacity={0.1} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" opacity={0.1} />
                   <XAxis 
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{ fontSize: 9, fontWeight: 600 }}
+                    tick={{ fontSize: 9, fontWeight: 600, fill: "#9ca3af" }}
                     dy={10}
                   />
                   <YAxis hide domain={[0, 'dataMax + 2']} />
                   <Tooltip 
                     contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      borderColor: 'hsl(var(--border))',
+                      backgroundColor: '#1a1625', 
+                      borderColor: '#333333',
                       borderRadius: '12px',
                       fontSize: '12px',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      color: '#ffffff'
                     }}
-                    cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '4 4' }}
+                    cursor={{ stroke: '#8b5cf6', strokeWidth: 1, strokeDasharray: '4 4' }}
                   />
                   <Area 
                     type="monotone" 
                     dataKey="clicks" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="#8b5cf6" 
                     strokeWidth={3}
                     fillOpacity={1} 
                     fill="url(#colorClicks)" 

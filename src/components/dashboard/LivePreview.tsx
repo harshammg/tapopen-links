@@ -50,26 +50,45 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
       : (profileTextColor === "light" ? "#ffffff" : "#000000") 
   };
 
+  const getAutoTextColor = (hexColor: string) => {
+    if (!hexColor || !hexColor.startsWith('#')) return 'white';
+    let r = 0, g = 0, b = 0;
+    if (hexColor.length === 4) {
+      r = parseInt(hexColor[1] + hexColor[1], 16);
+      g = parseInt(hexColor[2] + hexColor[2], 16);
+      b = parseInt(hexColor[3] + hexColor[3], 16);
+    } else if (hexColor.length === 7) {
+      r = parseInt(hexColor.slice(1, 3), 16);
+      g = parseInt(hexColor.slice(3, 5), 16);
+      b = parseInt(hexColor.slice(5, 7), 16);
+    } else {
+      return 'white';
+    }
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? 'black' : 'white';
+  };
+
   const getButtonStyle = (): React.CSSProperties => {
-    const txt = buttonTextColor === "auto" ? "white" : buttonTextColor;
-    const base: React.CSSProperties = {
-      borderRadius: buttonStyle === "pill" ? "9999px" : `${cornerRadius}px`,
-      color: txt,
+    const isAutoText = !buttonTextColor || buttonTextColor === "auto";
+    const customTxt = isAutoText ? getAutoTextColor(buttonColor) : buttonTextColor;
+    return {
+      borderRadius: "9999px", // Standard Pill Shape
+      backgroundColor: buttonColor,
+      color: customTxt,
       transition: "all 0.2s",
     };
-    switch (buttonStyle) {
-      case "filled":
-      case "pill":
-        return { ...base, backgroundColor: buttonColor };
-      case "outline":
-        return { ...base, border: `1px solid ${buttonColor}`, color: buttonColor, backgroundColor: "transparent" };
-      case "soft":
-        return { ...base, backgroundColor: `${buttonColor}33`, color: buttonColor };
-      case "ghost":
-        return { ...base, backgroundColor: "transparent", color: buttonColor };
-      default:
-        return { ...base, backgroundColor: buttonColor };
-    }
+  };
+
+  const getBoxStyle = (): React.CSSProperties => {
+    return {
+      backgroundColor: `${buttonColor}0D`, // 5% opacity glassy background (very subtle)
+      borderColor: `${buttonColor}1A`,     // 10% opacity border
+      borderWidth: '1px',
+      borderStyle: 'solid',
+      borderRadius: '24px', // Static shape! Not customizable.
+      color: textColorStyle.color,
+      transition: "all 0.2s",
+    };
   };
 
   if (!profile) {
@@ -102,18 +121,18 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
         </div>
       )}
 
-      <div className="relative w-64 h-[480px] md:w-72 md:h-[550px] rounded-[2.5rem] shadow-2xl overflow-hidden border-[8px] border-slate-900 bg-slate-50" style={bgStyle}>
+      <div className="relative w-64 h-[480px] md:w-72 md:h-[550px] rounded-[2.5rem] shadow-2xl overflow-hidden border-[8px] border-slate-900 bg-slate-50" style={{ ...bgStyle, ...textColorStyle }}>
         <div className="relative p-4 flex flex-col items-center space-y-3 h-full overflow-y-auto pt-10 no-scrollbar pb-8">
           {/* Mock Speaker/Camera */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-900 rounded-full" />
           
           {/* Profile Card */}
-          <div className="w-full p-4 rounded-2xl border-2 border-primary/20 bg-primary/5 backdrop-blur-sm text-center space-y-1">
-            <h2 className="text-sm font-bold tracking-tight" style={textColorStyle}>{profile.full_name || "Your Name"}</h2>
-            <p className="text-[8px] font-black opacity-40 uppercase tracking-widest" style={textColorStyle}>
+          <div className="w-full p-4 backdrop-blur-sm text-center space-y-1" style={getBoxStyle()}>
+            <h2 className="text-sm font-bold tracking-tight">{profile.full_name || "Your Name"}</h2>
+            <p className="text-[8px] font-black opacity-40 uppercase tracking-widest">
               @{profile.handle || "username"}
             </p>
-            {profile.bio && <p className="text-[9px] opacity-70 pt-0.5 leading-relaxed" style={textColorStyle}>{profile.bio}</p>}
+            {profile.bio && <p className="text-[9px] opacity-70 pt-0.5 leading-relaxed">{profile.bio}</p>}
           </div>
 
           {/* ───────── HOME ───────── */}
@@ -131,41 +150,39 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
                   <div 
                     key={item.id} 
                     onClick={() => setPreviewSection(item.id as any)}
-                    className={`w-full p-2.5 rounded-xl bg-gradient-to-br ${item.color} border border-white/10 flex items-center justify-between cursor-pointer hover:bg-white/20 transition-colors`}
+                    style={{ backgroundColor: buttonColor, color: getAutoTextColor(buttonColor), borderRadius: "24px", padding: "0.6rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+                    className="w-full hover:brightness-110 transition-all shadow-sm"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center">
-                        <item.icon className="w-3 h-3 opacity-70" style={textColorStyle} />
-                      </div>
                       <div>
-                        <span className="text-[9px] font-bold uppercase block" style={textColorStyle}>{item.label}</span>
-                        <span className="text-[7px] opacity-40" style={textColorStyle}>{item.desc}</span>
+                        <span className="text-[9px] font-bold uppercase block">{item.label}</span>
+                        <span className="text-[7px] opacity-70">{item.desc}</span>
                       </div>
                     </div>
-                    <ChevronRight className="w-3 h-3 opacity-30" style={textColorStyle} />
+                    <ChevronRight className="w-3 h-3 opacity-50" />
                   </div>
                 ))}
               </div>
 
               {/* Pinned Link (Hub preview) */}
               {visibleLinks.filter(l => l.is_pinned).slice(0, 1).map(l => (
-                <div key={l.id} className="w-full p-3 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 text-center">
-                  <span className="text-[7px] font-black uppercase tracking-widest opacity-50 block mb-1" style={textColorStyle}>Pinned</span>
-                  <span className="text-[10px] font-bold" style={textColorStyle}>{l.title}</span>
+                <div key={l.id} className="w-full p-3 text-center" style={getButtonStyle()}>
+                  <span className="text-[7px] font-black uppercase tracking-widest opacity-70 block mb-1">Pinned</span>
+                  <span className="text-[10px] font-bold">{l.title}</span>
                 </div>
               ))}
 
               {/* Latest Blog (Hub preview) */}
               {blogs.length > 0 && (
-                <div className="w-full flex gap-2 p-2 rounded-xl bg-white/5 border border-white/10">
+                <div className="w-full flex gap-2 p-2" style={getBoxStyle()}>
                   {blogs[0].image_url && (
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
                       <img src={blogs[0].image_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0 py-0.5">
-                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block" style={textColorStyle}>Latest Read</span>
-                    <span className="text-[9px] font-bold line-clamp-2 leading-tight" style={textColorStyle}>{blogs[0].title}</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block">Latest Read</span>
+                    <span className="text-[9px] font-bold line-clamp-2 leading-tight">{blogs[0].title}</span>
                   </div>
                 </div>
               )}
@@ -182,14 +199,16 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
 
               {/* Links/Store Toggle */}
               {hasLinks && hasStore && (
-                <div className="w-full flex p-0.5 bg-black/10 rounded-lg border border-white/10 shrink-0">
+                <div className="w-full flex p-0.5 shrink-0 overflow-hidden" style={getBoxStyle()}>
                   <button 
                     onClick={() => setLinksTab("links")}
-                    className={`flex-1 py-1 text-[7px] font-black uppercase tracking-widest rounded-md transition-all ${linksTab === "links" ? "bg-white text-black shadow-sm" : "text-white/60"}`}
+                    style={linksTab === "links" ? { backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) } : {}}
+                    className={`flex-1 py-1 text-[7px] font-black uppercase tracking-widest rounded-md transition-all ${linksTab === "links" ? "shadow-sm" : "opacity-50"}`}
                   >My Links</button>
                   <button 
                     onClick={() => setLinksTab("store")}
-                    className={`flex-1 py-1 text-[7px] font-black uppercase tracking-widest rounded-md transition-all ${linksTab === "store" ? "bg-white text-black shadow-sm" : "text-white/60"}`}
+                    style={linksTab === "store" ? { backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) } : {}}
+                    className={`flex-1 py-1 text-[7px] font-black uppercase tracking-widest rounded-md transition-all ${linksTab === "store" ? "shadow-sm" : "opacity-50"}`}
                   >My Store</button>
                 </div>
               )}
@@ -227,34 +246,34 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
           {/* ───────── PORTFOLIO ───────── */}
           {previewSection === "portfolio" && (
             <div className="w-full space-y-2 animate-in fade-in duration-500">
-              <button onClick={() => setPreviewSection("home")} className="text-[8px] font-black uppercase tracking-widest opacity-40 flex items-center gap-1 mb-1" style={textColorStyle}>
+              <button onClick={() => setPreviewSection("home")} className="text-[8px] font-black uppercase tracking-widest opacity-40 flex items-center gap-1 mb-1">
                 <ArrowRight className="w-2.5 h-2.5 rotate-180" /> Back
               </button>
               {/* Contact info */}
-              <div className="w-full p-2.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+              <div className="w-full p-2.5 space-y-1.5" style={getBoxStyle()}>
                 {profile.customization?.portfolio?.contact_email && (
-                  <div className="flex items-center gap-1.5 text-[8px] opacity-60" style={textColorStyle}>
+                  <div className="flex items-center gap-1.5 text-[8px] opacity-60">
                     <Mail className="w-2.5 h-2.5" /> {profile.customization.portfolio.contact_email}
                   </div>
                 )}
                 {profile.customization?.portfolio?.location && (
-                  <div className="flex items-center gap-1.5 text-[8px] opacity-60" style={textColorStyle}>
+                  <div className="flex items-center gap-1.5 text-[8px] opacity-60">
                     <MapPin className="w-2.5 h-2.5" /> {profile.customization.portfolio.location}
                   </div>
                 )}
               </div>
               {portfolio.slice(0, 2).map(item => (
-                <div key={item.id} className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex gap-2">
+                <div key={item.id} className="p-2.5 flex gap-2" style={getBoxStyle()}>
                   {item.image_url ? (
                     <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
                       <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 rounded-lg bg-white/10 shrink-0" />
+                    <div className="w-8 h-8 rounded-lg shrink-0" style={{ backgroundColor: `${buttonColor}1A` }} />
                   )}
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-[9px] font-bold truncate" style={textColorStyle}>{item.title}</h4>
-                    <p className="text-[7px] opacity-40 line-clamp-1" style={textColorStyle}>{item.date_range || item.description}</p>
+                    <h4 className="text-[9px] font-bold truncate">{item.title}</h4>
+                    <p className="text-[7px] opacity-40 line-clamp-1">{item.date_range || item.description}</p>
                   </div>
                 </div>
               ))}
@@ -265,24 +284,24 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
           {/* ───────── BLOGS ───────── */}
           {previewSection === "blogs" && (
             <div className="w-full space-y-3 animate-in fade-in duration-500">
-              <button onClick={() => setPreviewSection("home")} className="text-[8px] font-black uppercase tracking-widest opacity-40 flex items-center gap-1 mb-1" style={textColorStyle}>
+              <button onClick={() => setPreviewSection("home")} className="text-[8px] font-black uppercase tracking-widest opacity-40 flex items-center gap-1 mb-1">
                 <ArrowRight className="w-2.5 h-2.5 rotate-180" /> Back
               </button>
               {blogs.slice(0, 2).map(post => (
-                <div key={post.id} className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex flex-col">
+                <div key={post.id} className="overflow-hidden flex flex-col" style={getBoxStyle()}>
                   {post.image_url && (
                     <div className="aspect-video overflow-hidden">
                       <img src={post.image_url} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="p-2.5 flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-[7px] opacity-40" style={textColorStyle}>
+                    <div className="flex items-center gap-2 text-[7px] opacity-40">
                       <span className="flex items-center gap-0.5"><Calendar className="w-2 h-2" /> {format(new Date(post.created_at), "MMM d")}</span>
                       <span className="flex items-center gap-0.5"><Clock className="w-2 h-2" /> 3 min</span>
                     </div>
-                    <h4 className="text-[9px] font-bold line-clamp-2 leading-tight" style={textColorStyle}>{post.title}</h4>
-                    <p className="text-[7px] opacity-60 line-clamp-2 leading-relaxed" style={textColorStyle}>{post.excerpt || post.content?.substring(0, 80)}</p>
-                    <span className="text-[7px] font-black uppercase tracking-widest underline underline-offset-2 opacity-70 mt-1" style={textColorStyle}>Read Full Story</span>
+                    <h4 className="text-[9px] font-bold line-clamp-2 leading-tight">{post.title}</h4>
+                    <p className="text-[7px] opacity-60 line-clamp-2 leading-relaxed">{post.excerpt || post.content?.substring(0, 80)}</p>
+                    <span className="text-[7px] font-black uppercase tracking-widest underline underline-offset-2 opacity-70 mt-1">Read Full Story</span>
                   </div>
                 </div>
               ))}
@@ -292,13 +311,13 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
 
           {/* Action Buttons */}
           <div className="mt-4 flex flex-wrap justify-center gap-1.5 w-full">
-            <button className="flex-1 min-w-[60px] h-8 flex items-center justify-center text-[7px] uppercase tracking-widest font-black bg-white/5 border border-white/10 rounded-xl transition-all" style={textColorStyle}>
+            <button className="flex-1 min-w-[60px] flex items-center justify-center text-[7px] uppercase tracking-widest font-black transition-all hover:brightness-110" style={{ ...getButtonStyle(), minHeight: '2rem' }}>
               <Copy className="w-2.5 h-2.5 mr-1" /> Copy
             </button>
-            <button className="flex-1 min-w-[60px] h-8 flex items-center justify-center text-[7px] uppercase tracking-widest font-black bg-white/5 border border-white/10 rounded-xl transition-all" style={textColorStyle}>
+            <button className="flex-1 min-w-[60px] flex items-center justify-center text-[7px] uppercase tracking-widest font-black transition-all hover:brightness-110" style={{ ...getButtonStyle(), minHeight: '2rem' }}>
               <Share className="w-2.5 h-2.5 mr-1" /> Share
             </button>
-            <button className="flex-1 min-w-[60px] h-8 flex items-center justify-center text-[7px] uppercase tracking-widest font-black rounded-xl transition-all" style={{ ...getButtonStyle(), minHeight: '2rem' }}>
+            <button className="flex-1 min-w-[60px] flex items-center justify-center text-[7px] uppercase tracking-widest font-black transition-all hover:brightness-110" style={{ ...getButtonStyle(), minHeight: '2rem' }}>
               <QrCode className="w-2.5 h-2.5 mr-1" /> Scan
             </button>
           </div>
@@ -314,11 +333,11 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
                 bgColor="transparent"
                 fgColor={textColorStyle.color as string || "#000000"}
               />
-              <div className="mt-3 flex items-center gap-1 opacity-30" style={textColorStyle}>
+              <div className="mt-3 flex items-center gap-1" style={textColorStyle}>
                 <QrCode className="w-2.5 h-2.5" />
                 <span className="text-[7px] font-black uppercase tracking-widest">Scan to view & share</span>
               </div>
-              <p className="mt-6 text-[7px] font-black uppercase tracking-widest opacity-10" style={textColorStyle}>Powered by TapOpen</p>
+              <p className="mt-6 text-[7px] font-black uppercase tracking-widest" style={textColorStyle}>Powered by TapOpen</p>
             </div>
           )}
         </div>

@@ -3,15 +3,16 @@ import { nanoid } from "nanoid";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Trash2, Layout, Loader2, Save, Globe, User, Mail, MapPin, Eye, Plus, ShoppingBag, GripVertical, Search
+import {
+  Trash2, Layout, Loader2, Save, Globe, User, Mail, MapPin, Eye, Plus, ShoppingBag, GripVertical, Search, ArrowRight
 } from "lucide-react";
 import { linkService } from "@/services/linkService";
 import { toast } from "sonner";
 import { Reorder, useDragControls } from "framer-motion";
 import { LivePreview } from "@/components/dashboard/LivePreview";
+import AnalyticsModal from "@/components/dashboard/AnalyticsModal";
 
-const LinkItem = ({ link, onToggleCategory, onDelete }: any) => {
+const LinkItem = ({ link, onToggleCategory, onDelete, onAnalytics }: any) => {
   const dragControls = useDragControls();
   const isHeader = link.type === "header";
   const isStore = link.category === "store";
@@ -25,8 +26,8 @@ const LinkItem = ({ link, onToggleCategory, onDelete }: any) => {
       whileDrag={{ scale: 1.02, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
       className={`bg-card border ${isHeader ? (isStore ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-primary/30 bg-primary/5') : (isStore ? 'border-emerald-500/20' : 'border-border')} rounded-[1.5rem] p-5 flex items-center justify-between shadow-sm hover:border-primary/30 transition-shadow`}
     >
-      <div className="flex items-center gap-4 flex-1">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="flex items-center gap-2 shrink-0">
           <div 
             className="p-2 cursor-grab active:cursor-grabbing hover:bg-muted rounded-lg transition-colors"
             onPointerDown={(e) => dragControls.start(e)}
@@ -42,7 +43,19 @@ const LinkItem = ({ link, onToggleCategory, onDelete }: any) => {
           {!isHeader && <p className="text-xs text-muted-foreground truncate opacity-70">{link.url}</p>}
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 shrink-0">
+        {!isHeader && (
+          <button 
+            onClick={() => onAnalytics(link)}
+            className="flex items-center gap-1.5 bg-muted/30 hover:bg-primary/10 px-3 py-1.5 rounded-xl transition-all group mr-2"
+            title="View Analytics"
+          >
+            <span className="text-sm font-black text-primary">{link.clicks || 0}</span>
+            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest group-hover:text-primary transition-colors">
+              Clicks
+            </span>
+          </button>
+        )}
         <button 
           onClick={() => onToggleCategory(link.id, link.category)} 
           className={`p-2.5 rounded-xl transition-colors ${isStore ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-muted-foreground hover:bg-muted'}`}
@@ -69,11 +82,14 @@ interface Link {
   is_pinned?: boolean;
   slug?: string;
   sort_order?: number;
+  clicks?: number;
+  clicks_daily?: Record<string, number>;
 }
 
 export const LinkPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
   const [links, setLinks] = useState<Link[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -83,6 +99,7 @@ export const LinkPage: React.FC = () => {
   const [isCreatingLink, setIsCreatingLink] = useState(false);
   const [linksSearch, setLinksSearch] = useState("");
   const [storeSearch, setStoreSearch] = useState("");
+  const [analysisLink, setAnalysisLink] = useState<Link | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,7 +116,8 @@ export const LinkPage: React.FC = () => {
             id: l.id, title: l.title || "",
             url: l.slug ? `${window.location.origin}/${l.slug}` : l.original_url,
             originalUrl: l.original_url, type: l.type as any, category: (l.category as any) || "links",
-            active: l.active !== false, is_pinned: !!l.is_pinned, slug: l.slug, sort_order: l.sort_order
+            active: l.active !== false, is_pinned: !!l.is_pinned, slug: l.slug, sort_order: l.sort_order,
+            clicks: l.clicks || 0, clicks_daily: l.clicks_daily || {}
           })));
         }
 
@@ -177,16 +195,14 @@ export const LinkPage: React.FC = () => {
     }
   };
 
-  const [hasChanges, setHasChanges] = useState(false);
-
-  const updateSortOrder = async () => {
+  const updateSortOrder = async (linksToSave: Link[] = links) => {
     setIsSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
       // Perform updates in parallel for better reliability
-      const updatePromises = links.map((link, index) => {
+      const updatePromises = linksToSave.map((link, index) => {
         if (!link.id) return Promise.resolve();
         return supabase
           .from("links")
@@ -200,8 +216,7 @@ export const LinkPage: React.FC = () => {
       
       if (errors.length > 0) throw new Error("Some updates failed");
 
-      setHasChanges(false);
-      toast.success("Order saved successfully!");
+      toast.success("Order automatically saved!");
     } catch (err) {
       console.error("Save Order Error:", err);
       toast.error("Failed to save order. Please try again.");
@@ -224,7 +239,7 @@ export const LinkPage: React.FC = () => {
     }
     
     setLinks(finalLinks);
-    setHasChanges(true);
+    updateSortOrder(finalLinks);
   };
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
@@ -233,35 +248,50 @@ export const LinkPage: React.FC = () => {
   const storeLinks = links.filter(l => l.category === "store");
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 pb-32">
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight mb-2">My Links</h1>
-          <p className="text-muted-foreground">Manage your URLs, socials, and store items.</p>
-        </div>
-        <div className="flex gap-4">
-          {hasChanges && (
-            <Button 
-              onClick={updateSortOrder} 
-              disabled={isSaving}
-              className="h-12 px-8 rounded-2xl shadow-xl shadow-primary/20 animate-in fade-in slide-in-from-right-4 duration-300"
-            >
-              {isSaving ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-              Save Order
-            </Button>
-          )}
+    <>
+      {/* Mobile Preview Overlay */}
+      {showMobilePreview && (
+        <div className="fixed inset-0 z-[100] bg-background xl:hidden flex flex-col items-center justify-center p-6">
           <Button 
-            variant="outline" 
-            className="h-12 px-6 rounded-2xl"
-            onClick={() => window.open(`/${profile?.handle}/links`, "_blank")}
+            className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
+            onClick={() => setShowMobilePreview(false)}
+            variant="secondary"
           >
-            <Eye className="w-4 h-4 mr-2" /> View Public Profile
+            <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Editor
           </Button>
+          <div className="mt-16 w-full max-w-sm">
+            <LivePreview 
+              profile={profile} 
+              links={links} 
+              portfolio={portfolio} 
+              blogs={blogs} 
+              initialSection="links"
+              hideTabs={true}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8 space-y-10">
+      {/* Mobile Floating Button */}
+      {!showMobilePreview && (
+        <Button 
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-[40] xl:hidden rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
+          onClick={() => setShowMobilePreview(true)}
+        >
+          <Eye className="w-4 h-4 mr-2" /> View Live Preview
+        </Button>
+      )}
+
+      <div className="flex flex-col xl:flex-row justify-center gap-[32px] px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+        
+        {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
+        <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 md:mb-12">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Links</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Manage your URLs, socials, and store items.</p>
+            </div>
+          </div>
           {/* Add Link Form */}
           <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm space-y-8">
             <div className="space-y-4">
@@ -403,6 +433,7 @@ export const LinkPage: React.FC = () => {
                         link={link} 
                         onToggleCategory={toggleCategory}
                         onDelete={deleteLink}
+                        onAnalytics={setAnalysisLink}
                       />
                     ))}
                 </Reorder.Group>
@@ -441,6 +472,7 @@ export const LinkPage: React.FC = () => {
                         link={link} 
                         onToggleCategory={toggleCategory}
                         onDelete={deleteLink}
+                        onAnalytics={setAnalysisLink}
                       />
                     ))}
                 </Reorder.Group>
@@ -449,15 +481,14 @@ export const LinkPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Real-time Live Preview */}
-        <div className="lg:col-span-4 sticky top-24 hidden lg:block">
-          <div className="space-y-6">
-            <div className="text-center">
+        {/* ---------------- RIGHT STICKY PANEL (320px) ---------------- */}
+        <div className="hidden xl:block w-[320px] shrink-0 relative">
+          <div className="sticky top-8 space-y-6 flex flex-col items-center glass-panel p-6 pb-8">
+            <div className="text-center w-full">
               <h3 className="text-sm font-black uppercase tracking-widest text-primary mb-2">Live Preview</h3>
-              <p className="text-[10px] text-muted-foreground">Changes reflect instantly</p>
+              <p className="text-[10px] text-muted-foreground">See your changes in real-time</p>
             </div>
             <LivePreview 
-              key={`preview-${links.length}-${links[0]?.id || 'empty'}`}
               profile={profile} 
               links={links} 
               portfolio={portfolio} 
@@ -465,9 +496,21 @@ export const LinkPage: React.FC = () => {
               initialSection="links"
               hideTabs={true}
             />
+            {isSaving && (
+              <div className="flex items-center justify-center gap-2 text-primary font-black text-[10px] uppercase animate-pulse bg-primary/5 w-full py-3 rounded-2xl border border-primary/10">
+                <Loader2 className="w-3 h-3 animate-spin" /> Auto-Saving...
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Analytics Modal */}
+      <AnalyticsModal 
+        isOpen={!!analysisLink} 
+        onClose={() => setAnalysisLink(null)} 
+        link={analysisLink as any} 
+      />
+    </>
   );
 };

@@ -186,13 +186,15 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="px-4 py-6 md:p-12 max-w-4xl mx-auto pb-32">
-      <div className="mb-8 md:mb-12">
-        <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Account Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your creator identity, security, and preferences.</p>
-      </div>
+    <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
+      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
+        <div className="mb-6 md:mb-12">
+          <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Account Settings</h1>
+          <p className="text-sm text-muted-foreground">Manage your creator identity, security, and preferences.</p>
+        </div>
 
-      <div className="space-y-10">
+        <div className="space-y-10">
         {/* Creator Identity */}
         <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
           <div className="p-6 border-b border-border bg-muted/20">
@@ -349,6 +351,7 @@ const SettingsPage = () => {
           {saveStatus ? <Check className="h-5 w-5 mr-2" /> : null}
           {saveStatus ? "Changes Saved!" : "Save All Changes"}
         </Button>
+      </div>
       </div>
     </div>
   );

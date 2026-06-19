@@ -102,31 +102,35 @@ const BlogsPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 pb-32">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-12">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Blogs</h1>
-          <p className="text-muted-foreground">Write and share your stories with the world.</p>
+    <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+      
+      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
+      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-12">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Blogs</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Write and share your stories with the world.</p>
+          </div>
+          <Button 
+            variant="outline" 
+            className="h-12 px-6 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 font-bold self-start md:self-center"
+            onClick={async () => {
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) return;
+              const { data } = await supabase.from("profiles").select("handle").eq("id", session.user.id).single();
+              if (data?.handle) window.open(`/${data.handle}/blogs`, "_blank");
+            }}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Preview Blog
+          </Button>
         </div>
-        <Button 
-          variant="outline" 
-          className="h-12 px-6 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 font-bold self-start md:self-center"
-          onClick={async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-            const { data } = await supabase.from("profiles").select("handle").eq("id", session.user.id).single();
-            if (data?.handle) window.open(`/${data.handle}/blogs`, "_blank");
-          }}
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          Preview Blog
-        </Button>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        {/* Editor Form */}
-        <div className="lg:col-span-5">
-          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm sticky top-24">
+        {/* Stacked Content in Feed Column */}
+        <div className="space-y-10">
+          
+          {/* Editor Form */}
+          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm">
             <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
               <Plus className="w-5 h-5 text-primary" /> Write New Article
             </h3>
@@ -183,12 +187,11 @@ const BlogsPage = () => {
               </Button>
             </div>
           </div>
-        </div>
 
-        {/* Blogs List */}
-        <div className="lg:col-span-7">
-          {posts.length === 0 ? (
-            <div className="bg-muted/30 border-2 border-dashed border-border rounded-[2rem] p-20 text-center">
+          {/* Blogs List */}
+          <div>
+            {posts.length === 0 ? (
+              <div className="bg-muted/30 border-2 border-dashed border-border rounded-[2rem] p-20 text-center">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <FileText className="w-8 h-8 text-muted-foreground" />
               </div>
@@ -227,6 +230,7 @@ const BlogsPage = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

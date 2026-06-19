@@ -190,11 +190,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
 
   return (
-    <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4 relative overflow-hidden">
-      {/* Abstract Background Accents */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-primary/5 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary/5 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
-
+    <div className="min-h-screen bg-transparent flex flex-col justify-center items-center p-4 relative overflow-hidden">
       <Link to="/" className="flex items-center gap-2 mb-8 group transition-all hover:scale-105">
         <div className="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center shadow-lg">
           <Zap className="text-primary-foreground h-5 w-5" />
@@ -202,7 +198,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         <span className="text-xl font-display font-bold tracking-tighter">TapOpen</span>
       </Link>
 
-      <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 md:p-10 shadow-2xl relative">
+      <div className="w-full max-w-md glass-panel p-6 md:p-10 relative">
         <div className="text-center mb-10">
           <h1 className="text-3xl font-display font-bold mb-2">
             {mode === "login" ? "Welcome Back" : "Create Account"}
@@ -218,7 +214,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
           <Button
             type="button"
             variant="outline"
-            className="w-full h-14 rounded-xl font-bold text-sm bg-background hover:bg-muted transition-colors flex items-center justify-center gap-3 border-border"
+            className="w-full h-14 rounded-xl font-bold text-sm bg-transparent hover:bg-white/5 text-white transition-colors flex items-center justify-center gap-3 border border-white/10"
             onClick={handleGoogleLogin}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
@@ -234,7 +230,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
             <Button
               type="button"
               variant="outline"
-              className="w-full h-14 rounded-xl font-bold text-sm bg-background hover:bg-muted transition-colors flex items-center justify-center gap-3 border-border"
+              className="w-full h-14 rounded-xl font-bold text-sm bg-transparent hover:bg-white/5 text-white transition-colors flex items-center justify-center gap-3 border border-white/10"
               onClick={() => navigate("/auth/login")}
             >
               <Mail className="w-5 h-5 text-muted-foreground" />
@@ -243,9 +239,9 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
           )}
 
           <div className="flex items-center gap-4">
-            <div className="h-px bg-border flex-1" />
+            <div className="h-px bg-white/10 flex-1" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Or</span>
-            <div className="h-px bg-border flex-1" />
+            <div className="h-px bg-white/10 flex-1" />
           </div>
 
           {mode === "signup" && (
@@ -259,7 +255,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
                   placeholder="creator_handle"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-background border border-border focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm transition-all focus:outline-none"
+                  className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm text-white transition-all focus:outline-none"
                 />
               </div>
             </div>
@@ -276,7 +272,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
                   placeholder="John Doe"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-background border border-border focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm transition-all focus:outline-none"
+                  className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm text-white transition-all focus:outline-none"
                 />
               </div>
             </div>
@@ -294,7 +290,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
                 placeholder={mode === "login" ? "yourname@gmail.com" : "name@example.com"}
                 value={emailOrUsername}
                 onChange={(e) => setEmailOrUsername(e.target.value)}
-                className="w-full bg-background border border-border focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm transition-all focus:outline-none"
+                className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm text-white transition-all focus:outline-none"
               />
             </div>
           </div>
@@ -321,7 +317,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-background border border-border focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm transition-all focus:outline-none"
+                className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-xl pl-12 pr-4 py-3.5 text-sm text-white transition-all focus:outline-none"
               />
             </div>
           </div>
@@ -334,7 +330,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
                   <select
                     value={countryCode}
                     onChange={(e) => setCountryCode(e.target.value)}
-                    className="appearance-none bg-background border border-border focus:border-primary rounded-xl pl-4 pr-10 py-3.5 text-sm transition-all focus:outline-none cursor-pointer"
+                    className="appearance-none bg-white/5 border border-white/10 focus:border-primary rounded-xl pl-4 pr-10 py-3.5 text-sm text-white transition-all focus:outline-none cursor-pointer"
                   >
                     {COUNTRY_CODES.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -351,7 +347,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
                     placeholder="9876543210"
                     value={whatsappNo}
                     onChange={(e) => setWhatsappNo(e.target.value)}
-                    className="w-full bg-background border border-border focus:border-primary rounded-xl px-4 py-3.5 text-sm transition-all focus:outline-none"
+                    className="w-full bg-white/5 border border-white/10 focus:border-primary rounded-xl px-4 py-3.5 text-sm text-white transition-all focus:outline-none"
                   />
                 </div>
               </div>
