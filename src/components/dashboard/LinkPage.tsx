@@ -22,47 +22,48 @@ const LinkItem = ({ link, onToggleCategory, onDelete, onAnalytics }: any) => {
       value={link}
       dragListener={false}
       dragControls={dragControls}
-      whileDrag={{ scale: 1.02, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
-      className={`bg-card border ${isHeader ? (isStore ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-primary/30 bg-primary/5') : (isStore ? 'border-emerald-500/20' : 'border-border')} rounded-[1.5rem] p-5 flex items-center justify-between shadow-sm hover:border-primary/30 transition-shadow`}
+      whileDrag={{ scale: 1.02, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
+      className={`bg-white border ${isHeader ? 'border-[#E5E7EB] bg-[#F8FAFC]' : 'border-[#E5E7EB]'} rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:border-[#D1D5DB] transition-all mb-3`}
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <div 
-            className="p-2 cursor-grab active:cursor-grabbing hover:bg-muted rounded-lg transition-colors"
+            className="p-1.5 cursor-grab active:cursor-grabbing hover:bg-[#F8FAFC] rounded-lg transition-colors"
             onPointerDown={(e) => dragControls.start(e)}
           >
-            <GripVertical className={`w-4 h-4 ${isStore ? 'text-emerald-500/40' : 'text-muted-foreground/30'}`} />
+            <GripVertical className="w-4 h-4 text-[#9CA3AF]" />
           </div>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isHeader ? (isStore ? 'bg-emerald-500 text-white' : 'bg-primary text-white') : (isStore ? 'bg-emerald-500/10 text-emerald-500' : 'bg-muted text-muted-foreground')}`}>
-            {isStore ? <ShoppingBag className="w-5 h-5" /> : <Layout className="w-5 h-5" />}
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isHeader ? (isStore ? 'bg-blue-600 text-white' : 'bg-[#111827] text-white') : (isStore ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-[#F8FAFC] text-[#6B7280] border border-[#E5E7EB]')}`}>
+            {isStore ? <ShoppingBag className="w-4 h-4" /> : <Layout className="w-4 h-4" />}
           </div>
         </div>
-        <div className={`min-w-0 ${isHeader ? 'flex-1 text-center pr-10' : ''}`}>
-          <p className={`font-bold ${isHeader ? 'text-xs uppercase tracking-widest' : 'text-sm'} truncate`}>{link.title}</p>
-          {!isHeader && <p className="text-xs text-muted-foreground truncate opacity-70">{link.url}</p>}
+        <div className={`min-w-0 ${isHeader ? 'flex-1' : ''}`}>
+          <p className={`font-bold text-[#111827] ${isHeader ? 'text-xs uppercase tracking-widest' : 'text-sm'} truncate`}>{link.title}</p>
+          {!isHeader && <p className="text-xs text-[#6B7280] truncate opacity-90 mt-0.5">{link.url}</p>}
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {!isHeader && (
           <button 
             onClick={() => onAnalytics(link)}
-            className="flex items-center gap-1.5 bg-muted/30 hover:bg-primary/10 px-3 py-1.5 rounded-xl transition-all group mr-2"
+            className="flex items-center gap-1.5 bg-[#F8FAFC] hover:bg-blue-50 hover:text-blue-600 px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:border-blue-200 transition-all group"
             title="View Analytics"
           >
-            <span className="text-sm font-black text-primary">{link.clicks || 0}</span>
-            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest group-hover:text-primary transition-colors">
+            <span className="text-sm font-black text-[#111827] group-hover:text-blue-600">{link.clicks || 0}</span>
+            <span className="text-[9px] uppercase font-bold text-[#6B7280] tracking-widest group-hover:text-blue-600">
               Clicks
             </span>
           </button>
         )}
+        <div className="h-4 w-px bg-[#E5E7EB] mx-1 hidden md:block"></div>
         <button 
           onClick={() => onToggleCategory(link.id, link.category)} 
-          className={`p-2.5 rounded-xl transition-colors ${isStore ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-muted-foreground hover:bg-muted'}`}
+          className={`p-2 rounded-lg transition-colors ${isStore ? 'text-blue-600 hover:bg-blue-50' : 'text-[#6B7280] hover:bg-[#F8FAFC]'}`}
           title={isStore ? "Move to Links" : "Move to Store"}
         >
           {isStore ? <Layout className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
         </button>
-        <button onClick={() => onDelete(link.id)} className="p-2.5 text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-xl transition-colors">
+        <button onClick={() => onDelete(link.id)} className="p-2 text-[#9CA3AF] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -247,55 +248,24 @@ export const LinkPage: React.FC = () => {
   const storeLinks = links.filter(l => l.category === "store");
 
   return (
-    <>
-      {/* Mobile Preview Overlay */}
-      {showMobilePreview && (
-        <div className="fixed inset-0 z-[100] bg-background xl:hidden flex flex-col items-center justify-center p-6">
-          <Button 
-            className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
-            onClick={() => setShowMobilePreview(false)}
-            variant="secondary"
-          >
-            <ArrowRight className="w-4 h-4 mr-2 rotate-180" /> Back to Editor
-          </Button>
-          <div className="mt-16 w-full max-w-sm">
-            <LivePreview 
-              profile={profile} 
-              links={links} 
-              portfolio={portfolio} 
-              blogs={blogs} 
-              initialSection="links"
-              hideTabs={true}
-            />
-          </div>
-        </div>
-      )}
+    <div className="bg-[#F8FAFC] min-h-screen">
 
-      {/* Mobile Floating Button */}
-      {!showMobilePreview && (
-        <Button 
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-[40] xl:hidden rounded-full shadow-2xl font-bold tracking-widest uppercase text-[10px]"
-          onClick={() => setShowMobilePreview(true)}
-        >
-          <Eye className="w-4 h-4 mr-2" /> View Live Preview
-        </Button>
-      )}
 
-      <div className="flex flex-col xl:flex-row justify-center gap-[32px] px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+      <div className="flex flex-col xl:flex-row justify-center gap-[32px] px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1100px] mx-auto w-full">
         
-        {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
-        <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 md:mb-12">
+        {/* ---------------- CENTER FEED CONTENT (max 650px) ---------------- */}
+        <div className="flex-1 w-full max-w-[650px] mx-auto space-y-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-2">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Links</h1>
-              <p className="text-sm md:text-base text-muted-foreground">Manage your URLs, socials, and store items.</p>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#111827] tracking-tight mb-2">My Links</h1>
+              <p className="text-sm text-[#6B7280] font-medium">Manage your URLs, socials, and store items.</p>
             </div>
           </div>
           {/* Add Link Form */}
-          <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-sm space-y-8">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-sm space-y-8">
             <div className="space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                <Plus className="w-3 h-3" /> Add Standard Link
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] flex items-center gap-2">
+                <Plus className="w-3.5 h-3.5" /> Add Standard Link
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div className="md:col-span-2">
@@ -303,7 +273,7 @@ export const LinkPage: React.FC = () => {
                     value={newLink.type !== 'header' ? newLink.title : ""} 
                     onChange={e => setNewLink({...newLink, title: e.target.value, type: 'regular'})} 
                     placeholder="Title (e.g. Portfolio)" 
-                    className="h-12 rounded-xl bg-muted/50 border-transparent focus:bg-background transition-all"
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -311,87 +281,87 @@ export const LinkPage: React.FC = () => {
                     value={newLink.type !== 'header' ? newLink.url : ""} 
                     onChange={e => setNewLink({...newLink, url: e.target.value, type: 'regular'})} 
                     placeholder="URL (https://...)" 
-                    className="h-12 rounded-xl bg-muted/50 border-transparent focus:bg-background transition-all"
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
                   />
                 </div>
-                <Button onClick={addLink} className="h-12 rounded-xl font-bold" disabled={isCreatingLink}>
-                  {isCreatingLink ? <Loader2 className="animate-spin h-4 w-4" /> : <Plus className="h-4 w-4 mr-2" />}
+                <Button onClick={addLink} className="h-11 rounded-xl font-bold bg-[#111827] hover:bg-black text-white shadow-none" disabled={isCreatingLink}>
+                  {isCreatingLink ? <Loader2 className="animate-spin h-4 w-4" /> : <Plus className="h-4 w-4 mr-1.5" />}
                   Add Link
                 </Button>
               </div>
               {/* Category selector for link */}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Add to:</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF]">Add to:</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setNewLink({...newLink, category: 'links'})}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                       (newLink.category === 'links' || !newLink.category)
-                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                        ? 'bg-[#111827] text-white border-[#111827]'
+                        : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:bg-[#F8FAFC]'
                     }`}
                   >
-                    <Layout className="w-3 h-3" /> Links
+                    <Layout className="w-3.5 h-3.5" /> Links
                   </button>
                   <button
                     onClick={() => setNewLink({...newLink, category: 'store'})}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                       newLink.category === 'store'
-                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:bg-[#F8FAFC]'
                     }`}
                   >
-                    <ShoppingBag className="w-3 h-3" /> Store
+                    <ShoppingBag className="w-3.5 h-3.5" /> Store
                   </button>
                 </div>
               </div>
             </div>
 
-            <div className="pt-6 border-t border-border/50 space-y-4">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                <Layout className="w-3 h-3" /> Add Section Header
+            <div className="pt-8 border-t border-[#E5E7EB] space-y-4">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] flex items-center gap-2">
+                <Layout className="w-3.5 h-3.5" /> Add Section Header
               </h3>
               <div className="flex gap-3">
                 <Input 
                   value={newHeader.title || ""} 
                   onChange={e => setNewHeader({...newHeader, title: e.target.value})} 
-                  placeholder="Header Title (e.g. My Projects, Social Links...)" 
-                  className="h-12 rounded-xl bg-muted/50 border-transparent focus:bg-background transition-all"
+                  placeholder="Header Title (e.g. My Projects, Socials...)" 
+                  className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF] flex-1"
                   onKeyDown={(e) => e.key === 'Enter' && addHeader()}
                 />
                 <Button 
                   variant="outline"
                   onClick={addHeader} 
-                  className="h-12 px-6 rounded-xl font-bold border-2 hover:bg-primary hover:text-white hover:border-primary transition-all shrink-0" 
+                  className="h-11 px-5 rounded-xl font-bold border-[#E5E7EB] text-[#111827] hover:bg-[#F8FAFC] shrink-0 shadow-none" 
                   disabled={isCreatingLink}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-1.5" />
                   Add Header
                 </Button>
               </div>
               {/* Category selector for header */}
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Add to:</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF]">Add to:</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setNewHeader({...newHeader, category: 'links'})}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                       (newHeader.category === 'links' || !newHeader.category)
-                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                        ? 'bg-[#111827] text-white border-[#111827]'
+                        : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:bg-[#F8FAFC]'
                     }`}
                   >
-                    <Layout className="w-3 h-3" /> Links
+                    <Layout className="w-3.5 h-3.5" /> Links
                   </button>
                   <button
                     onClick={() => setNewHeader({...newHeader, category: 'store'})}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[11px] font-bold border transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
                       newHeader.category === 'store'
-                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                        : 'bg-muted/50 border-border text-muted-foreground hover:bg-muted'
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white border-[#E5E7EB] text-[#6B7280] hover:bg-[#F8FAFC]'
                     }`}
                   >
-                    <ShoppingBag className="w-3 h-3" /> Store
+                    <ShoppingBag className="w-3.5 h-3.5" /> Store
                   </button>
                 </div>
               </div>
@@ -399,27 +369,27 @@ export const LinkPage: React.FC = () => {
           </div>
 
           {/* Links Sections */}
-          <div className="space-y-12">
+          <div className="space-y-10">
             {/* Standard Links */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between ml-2">
-                <h3 className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                  <Layout className="w-4 h-4" /> Standard Links
-                  {linksSearch && <span className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{standardLinks.filter(l => l.title.toLowerCase().includes(linksSearch.toLowerCase())).length} results</span>}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-[#111827] flex items-center gap-2">
+                  <Layout className="w-4 h-4 text-blue-600" /> Standard Links
+                  {linksSearch && <span className="text-[9px] font-bold bg-[#F8FAFC] border border-[#E5E7EB] text-[#6B7280] px-2 py-0.5 rounded">{standardLinks.filter(l => l.title.toLowerCase().includes(linksSearch.toLowerCase())).length} results</span>}
                 </h3>
-              </div>
-              {/* Links Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-                <Input
-                  value={linksSearch}
-                  onChange={e => setLinksSearch(e.target.value)}
-                  placeholder="Search links..."
-                  className="h-9 pl-9 rounded-xl bg-muted/40 border-transparent text-xs focus:bg-background transition-all"
-                />
+                {/* Links Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" />
+                  <Input
+                    value={linksSearch}
+                    onChange={e => setLinksSearch(e.target.value)}
+                    placeholder="Search links..."
+                    className="h-9 pl-9 rounded-lg bg-white border-[#E5E7EB] text-xs focus:border-blue-500 transition-all placeholder:text-[#9CA3AF]"
+                  />
+                </div>
               </div>
               {standardLinks.length === 0 ? (
-                <div className="p-8 text-center border-2 border-dashed border-border rounded-[2.5rem] text-muted-foreground text-xs italic">
+                <div className="p-8 text-center border-2 border-dashed border-[#E5E7EB] rounded-2xl text-[#9CA3AF] text-sm font-medium bg-white">
                   No standard links yet.
                 </div>
               ) : (
@@ -441,24 +411,24 @@ export const LinkPage: React.FC = () => {
 
             {/* Digital Store */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between ml-2">
-                <h3 className="text-sm font-black uppercase tracking-widest text-emerald-500 flex items-center gap-2">
-                  <ShoppingBag className="w-4 h-4" /> Digital Store Items
-                  {storeSearch && <span className="text-[9px] font-bold bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">{storeLinks.filter(l => l.title.toLowerCase().includes(storeSearch.toLowerCase())).length} results</span>}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-[#111827] flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-blue-600" /> Digital Store Items
+                  {storeSearch && <span className="text-[9px] font-bold bg-[#F8FAFC] border border-[#E5E7EB] text-[#6B7280] px-2 py-0.5 rounded">{storeLinks.filter(l => l.title.toLowerCase().includes(storeSearch.toLowerCase())).length} results</span>}
                 </h3>
-              </div>
-              {/* Store Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-                <Input
-                  value={storeSearch}
-                  onChange={e => setStoreSearch(e.target.value)}
-                  placeholder="Search store items..."
-                  className="h-9 pl-9 rounded-xl bg-emerald-500/5 border-emerald-500/10 text-xs focus:bg-background transition-all"
-                />
+                {/* Store Search */}
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" />
+                  <Input
+                    value={storeSearch}
+                    onChange={e => setStoreSearch(e.target.value)}
+                    placeholder="Search store items..."
+                    className="h-9 pl-9 rounded-lg bg-white border-[#E5E7EB] text-xs focus:border-blue-500 transition-all placeholder:text-[#9CA3AF]"
+                  />
+                </div>
               </div>
               {storeLinks.length === 0 ? (
-                <div className="p-8 text-center border-2 border-dashed border-emerald-500/10 rounded-[2.5rem] text-muted-foreground text-xs italic bg-emerald-500/5">
+                <div className="p-8 text-center border-2 border-dashed border-[#E5E7EB] rounded-2xl text-[#9CA3AF] text-sm font-medium bg-white">
                   Your store is currently empty.
                 </div>
               ) : (
@@ -480,36 +450,7 @@ export const LinkPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ---------------- RIGHT STICKY PANEL (320px) ---------------- */}
-        <div className="hidden xl:block w-[320px] shrink-0 relative">
-          <div className="sticky top-8 space-y-6 flex flex-col items-center glass-panel p-6 pb-8">
-            <div className="flex flex-col gap-4 w-full">
-              <h3 className="text-center text-xl font-bold text-white mb-2">Preview removed.</h3>
-              <Button 
-                className="h-14 rounded-2xl font-bold shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 text-lg w-full"
-                onClick={() => window.open(`/${profile?.handle}`, "_blank")}
-              >
-                <ExternalLink className="w-5 h-5 mr-2" /> View Live Profile
-              </Button>
-              <Button 
-                variant="outline"
-                className="h-14 rounded-2xl font-bold border-border bg-card hover:bg-muted text-lg w-full"
-                onClick={() => {
-                  const url = `${window.location.origin}/${profile?.handle}`;
-                  navigator.clipboard.writeText(url);
-                  toast.success("Link copied to clipboard!");
-                }}
-              >
-                <Copy className="w-5 h-5 mr-2" /> Copy Link
-              </Button>
-            </div>
-            {isSaving && (
-              <div className="flex items-center justify-center gap-2 text-primary font-black text-[10px] uppercase animate-pulse bg-primary/5 w-full py-3 rounded-2xl border border-primary/10">
-                <Loader2 className="w-3 h-3 animate-spin" /> Auto-Saving...
-              </div>
-            )}
-          </div>
-        </div>
+
       </div>
       
       {/* Analytics Modal */}
@@ -518,6 +459,6 @@ export const LinkPage: React.FC = () => {
         onClose={() => setAnalysisLink(null)} 
         link={analysisLink as any} 
       />
-    </>
+    </div>
   );
 };

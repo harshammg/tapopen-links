@@ -17,6 +17,7 @@ export default {
         display: ['"Space Grotesk"', 'sans-serif'],
         body: ['"Space Grotesk"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
+        inter: ['"Inter"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

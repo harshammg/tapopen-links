@@ -102,135 +102,125 @@ const BlogsPage = () => {
   }
 
   return (
-    <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
-      
-      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
-      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-12">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Blogs</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Write and share your stories with the world.</p>
-          </div>
-          <Button 
-            variant="outline" 
-            className="h-12 px-6 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 font-bold self-start md:self-center"
-            onClick={async () => {
-              const { data: { session } } = await supabase.auth.getSession();
-              if (!session) return;
-              const { data } = await supabase.from("profiles").select("handle").eq("id", session.user.id).single();
-              if (data?.handle) window.open(`/${data.handle}/blogs`, "_blank");
-            }}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            Preview Blog
-          </Button>
-        </div>
+    <div className="bg-[#F8FAFC] min-h-screen">
+      <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+        
+        {/* ---------------- CENTER FEED CONTENT (max 650px) ---------------- */}
+        <div className="flex-1 w-full max-w-[650px] mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-12">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#111827] tracking-tight mb-2">Blogs</h1>
+              <p className="text-sm text-[#6B7280] font-medium">Write and share your stories with the world.</p>
+            </div>
 
-        {/* Stacked Content in Feed Column */}
-        <div className="space-y-10">
-          
-          {/* Editor Form */}
-          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <Plus className="w-5 h-5 text-primary" /> Write New Article
-            </h3>
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Title</label>
-                <Input 
-                  placeholder="e.g. 10 Tips for Modern Web Design" 
-                  value={newPost.title}
-                  onChange={(e) => setNewPost({...newPost, title: e.target.value})}
-                  className="rounded-xl h-12"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Excerpt (Short Summary)</label>
-                <Input 
-                  placeholder="A quick summary for the preview..." 
-                  value={newPost.excerpt}
-                  onChange={(e) => setNewPost({...newPost, excerpt: e.target.value})}
-                  className="rounded-xl h-12"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Cover Image URL</label>
-                <Input 
-                  placeholder="https://..." 
-                  value={newPost.image_url}
-                  onChange={(e) => setNewPost({...newPost, image_url: e.target.value})}
-                  className="rounded-xl h-12"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center ml-1">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Content</label>
-                  <span className="text-[9px] text-muted-foreground/70 font-medium">Markdown Supported</span>
+          </div>
+
+          {/* Stacked Content in Feed Column */}
+          <div className="space-y-8">
+            
+            {/* Editor Form */}
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 md:p-8 shadow-sm">
+              <h3 className="text-lg font-bold text-[#111827] mb-6 flex items-center gap-2">
+                <Plus className="w-5 h-5 text-blue-600" /> Write New Article
+              </h3>
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#6B7280] ml-1">Title</label>
+                  <Input 
+                    placeholder="e.g. 10 Tips for Modern Web Design" 
+                    value={newPost.title}
+                    onChange={(e) => setNewPost({...newPost, title: e.target.value})}
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
+                  />
                 </div>
-                <Textarea 
-                  placeholder="Write your story here... You can use Markdown to add links like this: [Click Here](https://example.com)" 
-                  value={newPost.content}
-                  onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-                  className="rounded-xl min-h-[250px] resize-y"
-                />
-                <p className="text-[10px] text-muted-foreground ml-1 mt-1">
-                  💡 Tip: To add a link, type <code className="bg-muted px-1 py-0.5 rounded text-primary">[Your Text](https://your-url.com)</code>
-                </p>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#6B7280] ml-1">Excerpt (Short Summary)</label>
+                  <Input 
+                    placeholder="A quick summary for the preview..." 
+                    value={newPost.excerpt}
+                    onChange={(e) => setNewPost({...newPost, excerpt: e.target.value})}
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#6B7280] ml-1">Cover Image URL</label>
+                  <Input 
+                    placeholder="https://..." 
+                    value={newPost.image_url}
+                    onChange={(e) => setNewPost({...newPost, image_url: e.target.value})}
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center ml-1">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#6B7280]">Content</label>
+                    <span className="text-[9px] text-[#9CA3AF] font-medium">Markdown Supported</span>
+                  </div>
+                  <Textarea 
+                    placeholder="Write your story here... You can use Markdown to add links like this: [Click Here](https://example.com)" 
+                    value={newPost.content}
+                    onChange={(e) => setNewPost({...newPost, content: e.target.value})}
+                    className="min-h-[250px] resize-y rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF] p-4"
+                  />
+                  <p className="text-[10px] text-[#6B7280] ml-1 mt-1">
+                    💡 Tip: To add a link, type <code className="bg-[#F8FAFC] border border-[#E5E7EB] px-1.5 py-0.5 rounded text-[#111827] font-mono">[Your Text](https://your-url.com)</code>
+                  </p>
+                </div>
+                <Button 
+                  onClick={addPost} 
+                  disabled={isAdding}
+                  className="w-full rounded-xl h-11 font-bold shadow-none mt-4 bg-[#111827] hover:bg-black text-white"
+                >
+                  {isAdding ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <BookOpen className="w-4 h-4 mr-1.5" />}
+                  Publish Article
+                </Button>
               </div>
-              <Button 
-                onClick={addPost} 
-                disabled={isAdding}
-                className="w-full rounded-xl h-12 font-bold shadow-lg mt-4"
-              >
-                {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BookOpen className="w-4 h-4 mr-2" />}
-                Publish Article
-              </Button>
             </div>
-          </div>
 
-          {/* Blogs List */}
-          <div>
-            {posts.length === 0 ? (
-              <div className="bg-muted/30 border-2 border-dashed border-border rounded-[2rem] p-20 text-center">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-8 h-8 text-muted-foreground" />
+            {/* Blogs List */}
+            <div>
+              {posts.length === 0 ? (
+                <div className="bg-white border-2 border-dashed border-[#E5E7EB] rounded-2xl p-16 text-center">
+                <div className="w-12 h-12 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-5 h-5 text-[#9CA3AF]" />
+                </div>
+                <h3 className="text-sm font-bold text-[#111827] mb-1">No articles yet</h3>
+                <p className="text-xs text-[#6B7280] max-w-xs mx-auto font-medium">Your stories will appear here once you publish your first article.</p>
               </div>
-              <h3 className="text-lg font-bold mb-2">No articles yet</h3>
-              <p className="text-muted-foreground max-w-xs mx-auto">Your stories will appear here once you publish your first article.</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {posts.map((post) => (
-                <div key={post.id} className="group bg-card border border-border rounded-[2rem] p-6 flex flex-col md:flex-row gap-6 hover:border-primary/30 hover:shadow-xl transition-all animate-in slide-in-from-right-4 duration-500">
-                  {post.image_url && (
-                    <div className="w-full md:w-40 h-40 rounded-2xl overflow-hidden shrink-0">
-                      <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    </div>
-                  )}
-                  <div className="flex-1 flex flex-col">
-                    <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {format(new Date(post.created_at), "MMM d, yyyy")}</span>
-                      <span className="w-1 h-1 bg-muted-foreground rounded-full" />
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 3 min read</span>
-                    </div>
-                    <h4 className="font-bold text-xl mb-2 group-hover:text-primary transition-colors">{post.title}</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">{post.excerpt || post.content.substring(0, 150) + "..."}</p>
-                    <div className="flex items-center justify-between mt-auto">
-                      <Button variant="ghost" className="p-0 h-auto font-bold text-xs uppercase tracking-widest text-primary hover:bg-transparent">Read Full Story</Button>
-                      <button 
-                        onClick={() => deletePost(post.id)}
-                        className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <div key={post.id} className="group bg-white border border-[#E5E7EB] rounded-2xl p-5 md:p-6 flex flex-col md:flex-row gap-5 hover:border-blue-200 hover:shadow-sm transition-all">
+                    {post.image_url && (
+                      <div className="w-full md:w-40 h-40 rounded-xl overflow-hidden shrink-0 border border-[#E5E7EB]">
+                        <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      </div>
+                    )}
+                    <div className="flex-1 flex flex-col min-w-0">
+                      <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-3">
+                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {format(new Date(post.created_at), "MMM d, yyyy")}</span>
+                        <span className="w-1 h-1 bg-[#D1D5DB] rounded-full" />
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 3 min read</span>
+                      </div>
+                      <h4 className="font-bold text-[#111827] text-lg mb-1.5 group-hover:text-blue-600 transition-colors truncate">{post.title}</h4>
+                      <p className="text-sm text-[#4B5563] line-clamp-2 mb-4 flex-1 leading-relaxed">{post.excerpt || post.content.substring(0, 150) + "..."}</p>
+                      <div className="flex items-center justify-between mt-auto">
+                        <Button variant="ghost" className="p-0 h-auto font-bold text-[11px] uppercase tracking-widest text-blue-600 hover:text-blue-700 hover:bg-transparent">Read Full Story</Button>
+                        <button 
+                          onClick={() => deletePost(post.id)}
+                          className="p-1.5 text-[#9CA3AF] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+        </div>
       </div>
     </div>
   );

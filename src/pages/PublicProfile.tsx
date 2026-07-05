@@ -1,25 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { useParams, useLocation, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { Button } from "@/components/ui/button";
-import { 
-  Loader2, ArrowRight, ExternalLink, Briefcase, BookOpen, 
-  Layout, Globe, Calendar, Clock, Mail, MapPin, Code2, GraduationCap, Save, QrCode, Copy, Share, Search
+import {
+  Loader2, ArrowLeft, ExternalLink, Briefcase, BookOpen,
+  Globe, Calendar, Clock, Mail, MapPin, Code2, GraduationCap,
+  Save, QrCode, Copy, Share, Search, ArrowRight, Zap
 } from "lucide-react";
 import { format } from "date-fns";
 import { QRCodeSVG } from "qrcode.react";
 import ReactMarkdown from "react-markdown";
+import { toast } from "sonner";
+import { Helmet } from "react-helmet-async";
+import { isAndroid, toAndroidIntent } from "@/lib/deepLinkUtils";
 
-interface ProfileCustomization {
-  background: { type: "color" | "image"; value: string; overlay?: boolean; opacity?: number };
-  buttonStyle: "filled" | "outline" | "soft" | "ghost" | "pill";
-  buttonColor: string;
-  buttonTextColor: "white" | "black" | "auto";
-  cornerRadius: number;
-  profileTextColor: "light" | "dark";
-  defaultPage?: string;
-}
-
+/* ── Types ────────────────────────────────────────────── */
 interface Link {
   id: string;
   title: string;
@@ -58,68 +52,86 @@ interface BlogPost {
   created_at: string;
 }
 
-import { QRScannerModal } from "@/components/dashboard/QRScannerModal";
+interface PublicProfileProps {
+  previewData?: {
+    profile: any;
+    links: any[];
+    portfolio: any[];
+    blogs: any[];
+    initialSection?: "home" | "links" | "portfolio" | "blogs";
+  };
+}
 
-const PublicProfile = () => {
+/* ── Component ────────────────────────────────────────── */
+const PublicProfile: React.FC<PublicProfileProps> = ({ previewData }) => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const subPath = location.pathname.split('/').filter(Boolean)[1] || ""; // Get part after /username/
-  
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [links, setLinks] = useState<Link[]>([]);
-  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const subPath = location.pathname.split("/").filter(Boolean)[1] || "";
+
+  const [loading, setLoading] = useState(!previewData);
+  const [profile, setProfile] = useState<any>(previewData?.profile || null);
+  const [links, setLinks] = useState<Link[]>(previewData?.links || []);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>(previewData?.portfolio || []);
+  const [blogs, setBlogs] = useState<BlogPost[]>(previewData?.blogs || []);
   const [previewTab, setPreviewTab] = useState<"links" | "store">(
     subPath === "store" ? "store" : "links"
   );
   const [activePage, setActivePage] = useState<"home" | "links" | "portfolio" | "blogs">("home");
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [linkSearch, setLinkSearch] = useState("");
+  const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
+
+  /* ── Sync previewData ─── */
+  useEffect(() => {
+    if (previewData?.initialSection) setActivePage(previewData.initialSection);
+  }, [previewData?.initialSection]);
 
   useEffect(() => {
-    if (profile?.customization?.defaultPage && !subPath) {
-      const page = profile.customization.defaultPage;
-      setActivePage(page === "all" ? "home" : page as any);
-    } else {
-      const page = (subPath === "links" || subPath === "link") ? "links" : 
-                   subPath === "portfolio" ? "portfolio" : 
-                   subPath === "blogs" ? "blogs" : 
-                   !subPath ? "home" : "links";
-      setActivePage(page);
+    if (previewData) {
+      setProfile(previewData.profile);
+      setLinks(previewData.links);
+      setPortfolio(previewData.portfolio);
+      setBlogs(previewData.blogs);
+      setLoading(false);
     }
-  }, [subPath, profile]);
+  }, [previewData]);
 
+  /* ── Fetch from Supabase ─── */
   useEffect(() => {
+    if (previewData) return;
     const fetchData = async () => {
       if (!slug) return;
-      
       try {
-        // 1. Fetch Profile by handle
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("handle", slug)
           .single();
-          
-        if (profileError || !profileData) {
-          setProfile(null);
-          return;
-        }
 
+        if (error || !profileData) { setProfile(null); setLoading(false); return; }
         setProfile(profileData);
 
-        // 2. Fetch Links by user_id (exclude quick-generated links)
-        const { data: linkData } = await supabase
-          .from("links")
-          .select("*")
-          .eq("user_id", profileData.id)
-          .or("is_quick.is.null,is_quick.eq.false")
-          .order("sort_order", { ascending: true });
+        const [linkRes, portRes, blogRes] = await Promise.all([
+          supabase
+            .from("links")
+            .select("*")
+            .eq("user_id", profileData.id)
+            .or("is_quick.is.null,is_quick.eq.false")
+            .order("sort_order", { ascending: true }),
+          supabase
+            .from("portfolio_items")
+            .select("*")
+            .eq("user_id", profileData.id)
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("blog_posts")
+            .select("*")
+            .eq("user_id", profileData.id)
+            .order("created_at", { ascending: false })
+        ]);
 
-        if (linkData) {
-          const mappedLinks: Link[] = linkData.map(l => ({
+        if (linkRes.data) {
+          const mapped: Link[] = linkRes.data.map(l => ({
             id: l.id || l.slug,
             title: l.title || l.original_url || "",
             url: l.slug ? `${window.location.origin}/${l.slug}` : l.original_url,
@@ -130,638 +142,554 @@ const PublicProfile = () => {
             deepLink: !!l.deep_link,
             is_pinned: !!l.is_pinned,
           }));
-          
-          setLinks(mappedLinks);
-          
-          // 3. Fetch Portfolio
-          const { data: portData } = await supabase
-            .from("portfolio_items")
-            .select("*")
-            .eq("user_id", profileData.id)
-            .order("created_at", { ascending: false });
-          if (portData) setPortfolio(portData);
-
-          // 4. Fetch Blogs
-          const { data: blogData } = await supabase
-            .from("blog_posts")
-            .select("*")
-            .eq("user_id", profileData.id)
-            .order("created_at", { ascending: false });
-          if (blogData) setBlogs(blogData);
-
-          // Auto-select tab if only one is available
-          const hasLinks = mappedLinks.some(l => l.active && (!l.category || l.category === "links"));
-          const hasStore = mappedLinks.some(l => l.active && l.category === "store");
+          setLinks(mapped);
+          const hasStore = mapped.some(l => l.active && l.category === "store");
+          const hasLinks = mapped.some(l => l.active && (!l.category || l.category === "links"));
           if (!hasLinks && hasStore) setPreviewTab("store");
         }
-      } catch (error) {
-        console.error("Error fetching public profile:", error);
+
+        if (portRes.data) setPortfolio(portRes.data);
+        if (blogRes.data) setBlogs(blogRes.data);
+      } catch (err) {
+        console.error("PublicProfile fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [slug]);
 
-  const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
-
+  /* ── Blog deep-link via ?blog=id ─── */
   useEffect(() => {
     const blogId = searchParams.get("blog");
     if (blogId && blogs.length > 0) {
-      const blog = blogs.find(b => b.id === blogId);
-      if (blog && !selectedBlog) {
-        setSelectedBlog(blog);
-        setActivePage("blogs");
-      }
+      const found = blogs.find(b => b.id === blogId);
+      if (found && !selectedBlog) { setSelectedBlog(found); setActivePage("blogs"); }
     }
   }, [searchParams, blogs]);
 
+  /* ── Active page from URL subpath ─── */
+  useEffect(() => {
+    const page =
+      subPath === "links" || subPath === "link" ? "links"
+      : subPath === "portfolio" ? "portfolio"
+      : subPath === "blogs" ? "blogs"
+      : "home";
+      
+    const visibility = profile?.customization?.sections_visibility || {};
+    const sections = ["links", "portfolio", "blogs"];
+    const visibleSections = sections.filter(s => visibility[s] !== false);
+    
+    // If navigating directly to a hidden page, redirect to home menu
+    if (page !== "home" && visibility[page] === false) {
+      setActivePage("home");
+    } else if (page === "home" && visibleSections.length === 1) {
+      // If landing on home but only one section is visible, skip straight to it
+      setActivePage(visibleSections[0] as any);
+    } else {
+      setActivePage(page);
+    }
+  }, [subPath, profile?.customization?.sections_visibility]);
+
+  /* ── Loading ─── */
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-8">
+          <div className="relative flex items-center justify-center w-20 h-20">
+            <div className="absolute inset-0 border-[3px] border-[#E5E7EB] rounded-2xl rotate-45"></div>
+            <div className="absolute inset-0 border-[3px] border-[#111827] rounded-2xl border-t-transparent border-r-transparent animate-spin"></div>
+            <div className="w-4 h-4 bg-[#111827] rounded-sm rotate-45 animate-pulse"></div>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xl font-extrabold tracking-tight text-[#111827]">TapOpen</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
-
-
+  /* ── Not found ─── */
   if (!profile) {
-    // If not found, it might be a short link, so RedirectHandler should handle it.
-    // However, if we reached here from RedirectHandler falling back, it means not found.
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 text-center">
-        <h1 className="text-2xl font-bold mb-2">Page Not Found</h1>
-        <p className="text-muted-foreground mb-6">This profile or link does not exist.</p>
-        <a href="/" className="px-6 py-2 bg-primary text-primary-foreground rounded-full font-bold">Create your own TapOpen</a>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center text-[#111827]">
+        <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-center justify-center mb-5">
+          <Zap className="w-6 h-6 text-[#9CA3AF]" />
+        </div>
+        <h1 className="text-xl font-extrabold mb-2">Profile not found</h1>
+        <p className="text-sm text-[#6B7280] mb-6">This handle doesn't exist or the link may have changed.</p>
+        <a href="/" className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#111827] text-white text-xs font-bold rounded-full hover:bg-black/90 transition-colors">
+          Create your own TapOpen
+        </a>
       </div>
     );
   }
 
-  const { 
-    background = { type: "color", value: "#000000" }, 
-    buttonStyle = "filled", 
-    buttonColor = "#ffffff", 
-    buttonTextColor = "auto", 
-    cornerRadius = 8, 
-    profileTextColor = "#ffffff" 
-  } = profile.customization || {};
+  const initials = profile.full_name
+    ? profile.full_name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    : (profile.handle || "U")[0].toUpperCase();
 
-  const bgStyle: React.CSSProperties = background.type === "color"
-    ? { backgroundColor: background.value }
-    : { backgroundImage: `url(${background.value})`, backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" };
+  const visibleLinks = links.filter(l => l.active);
+  const hasRegular = visibleLinks.some(l => !l.category || l.category === "links");
+  const hasStore = visibleLinks.some(l => l.category === "store");
+  const isStoreView = previewTab === "store" && hasStore;
 
-  const overlayStyle: React.CSSProperties =
-    background.type === "image" && background.overlay
-      ? {
-          backgroundColor: "rgba(0,0,0," + (background.opacity ?? 0.5) + ")",
-          inset: 0,
-          position: "absolute",
-        }
-      : {};
+  const copyUrl = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Link copied!");
+  };
 
-  const getAutoTextColor = (hexColor: string) => {
-    if (!hexColor || !hexColor.startsWith('#')) return 'white';
-    let r = 0, g = 0, b = 0;
-    if (hexColor.length === 4) {
-      r = parseInt(hexColor[1] + hexColor[1], 16);
-      g = parseInt(hexColor[2] + hexColor[2], 16);
-      b = parseInt(hexColor[3] + hexColor[3], 16);
-    } else if (hexColor.length === 7) {
-      r = parseInt(hexColor.slice(1, 3), 16);
-      g = parseInt(hexColor.slice(3, 5), 16);
-      b = parseInt(hexColor.slice(5, 7), 16);
+  const shareUrl = () => {
+    if (navigator.share) {
+      navigator.share({ title: profile.full_name || profile.handle, url: window.location.href }).catch(() => {});
     } else {
-      return 'white';
+      copyUrl();
     }
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? 'black' : 'white';
   };
 
-  const isAutoText = !buttonTextColor || buttonTextColor === "auto";
-  const customTxt = isAutoText ? getAutoTextColor(buttonColor) : buttonTextColor;
-
-  const getButtonStyle = (): React.CSSProperties => {
-    return {
-      borderRadius: "9999px",
-      backgroundColor: buttonColor,
-      color: customTxt,
-      border: `1px solid ${textColorStyle.color === "#ffffff" ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)"}`,
-      transition: "all 0.2s",
-    };
-  };
-
-  const textColorStyle: React.CSSProperties = { color: profileTextColor && profileTextColor.startsWith('#') ? profileTextColor : (profileTextColor === "light" ? "#ffffff" : "#000000") };
-  
-  const getInitials = (name: string) => {
-    return name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U";
-  };
-
-  const visibleLinks = links.filter((l) => l.active);
-  const hasRegular = visibleLinks.some(l => l.type === "regular");
-  const hasAffiliate = visibleLinks.some(l => l.type === "affiliate");
-  const isStoreView = (hasRegular && previewTab === "store") || (!hasRegular && hasAffiliate);
+  /* ─────────────────────────────────────────────────────
+     RENDER — default light theme
+  ───────────────────────────────────────────────────── */
+  const profileName = profile.full_name || `@${profile.handle}`;
+  const profileTitle = `${profileName} | TapOpen`;
+  const profileDesc = profile.bio || `Check out ${profileName}'s links, portfolio, and blogs on TapOpen.`;
 
   return (
-    <div className="min-h-screen w-full relative flex justify-center text-current" style={{ ...bgStyle, ...textColorStyle }}>
-      {background.type === "image" && background.overlay && <div style={overlayStyle} />}
-      
-      {/* Desktop / Mobile Centered Container */}
-      <div className="relative w-full max-w-md min-h-screen bg-transparent p-6 flex flex-col items-center space-y-6 pt-16 pb-24 transition-all duration-500">
-        
-        {/* Profile Info */}
+    <div className="min-h-screen w-full bg-[#F8FAFC] font-inter text-[#111827]">
+      <Helmet>
+        <title>{profileTitle}</title>
+        <meta name="description" content={profileDesc} />
+      </Helmet>
 
-        <div className={`w-full p-8 rounded-3xl border-2 border-primary/20 bg-primary/5 backdrop-blur-md shadow-lg text-center space-y-3`}>
-          <h1 className="text-2xl font-bold tracking-tight" style={textColorStyle}>{profile.full_name || `@${profile.handle}`}</h1>
-          {profile.bio && <p className="text-base opacity-90" style={textColorStyle}>{profile.bio}</p>}
-        </div>
-        
-        {/* Conditional Content Rendering */}
-        <div className="w-full space-y-8">
-          {activePage === "home" && (
-            <div className="space-y-10 animate-in fade-in duration-700">
-              
-              {/* Hub Navigation Cards */}
-              <div className="grid grid-cols-1 gap-4">
-                {[
-                  { id: "links", label: "Link Page", icon: Globe, desc: "All my important links & socials" },
-                  { id: "portfolio", label: "Portfolio", icon: Briefcase, desc: "My professional journey & projects" },
-                  { id: "blogs", label: "Blogs", icon: BookOpen, desc: "Read my latest articles & thoughts" }
-                ]
-                .filter(item => profile?.customization?.sections_visibility?.[item.id] !== false)
-                .map((item) => (
-                  <button 
-                    key={item.id}
-                    onClick={() => setActivePage(item.id as any)}
-                    className="group relative w-full p-6 rounded-[24px] border border-current/10 bg-current/5 backdrop-blur-md shadow-lg text-left hover:bg-current/10 active:scale-[0.98] transition-all overflow-hidden"
-                  >
-                    <div className="flex items-center gap-4 relative z-10">
-                      <div>
-                        <h3 className="text-lg font-bold leading-tight">{item.label}</h3>
-                        <p className="text-xs opacity-70">{item.desc}</p>
-                      </div>
-                      <ArrowRight className="ml-auto w-5 h-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </button>
-                ))}
-              </div>
+      {/* ── Centered narrow container ── */}
+      <div className="mx-auto max-w-md min-h-screen flex flex-col pb-20">
 
-              {/* Pinned Feature Link */}
-              {visibleLinks.find(l => (l as any).is_pinned) && (
-                <div className="space-y-4">
-                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] px-2 opacity-70" style={textColorStyle}>Featured Now</h3>
-                  {visibleLinks.filter(l => (l as any).is_pinned).slice(0, 1).map(l => (
-                    <a 
-                      key={l.id} 
-                      href={l.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="group relative flex flex-col items-center justify-center p-8 rounded-[2.5rem] bg-current text-white shadow-2xl shadow-current/30 hover:scale-[1.02] transition-all overflow-hidden text-center"
-                    >
-                      <div className="absolute top-0 right-0 p-4 opacity-20">
-                        <Layout className="w-12 h-12" />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] mb-3 opacity-70">Pinned Selection</span>
-                      <h4 className="text-xl font-black mb-2">{l.title}</h4>
-                      <div className="flex items-center gap-2 text-xs font-bold bg-white/20 px-4 py-2 rounded-full backdrop-blur-sm">
-                        Visit Now <ExternalLink className="w-3 h-3" />
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {/* Hub: Latest Blog Preview (Smaller) */}
-              {blogs.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between px-2">
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-70" style={textColorStyle}>Latest Read</h3>
-                  </div>
-                  <div 
-                    onClick={() => setSelectedBlog(blogs[0])}
-                    className="flex gap-4 p-4 rounded-2xl bg-current/5 border border-current/10 backdrop-blur-sm cursor-pointer hover:bg-current/10 transition-colors"
-                  >
-                    {blogs[0].image_url && (
-                      <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-current/10">
-                        <img src={blogs[0].image_url} alt={blogs[0].title} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    <div className="flex-1 py-1">
-                      <h4 className="text-sm font-bold line-clamp-2 leading-tight mb-2" style={textColorStyle}>{blogs[0].title}</h4>
-                      <p className="text-[10px] opacity-50 flex items-center gap-2" style={textColorStyle}>
-                        <Clock className="w-3 h-3" /> Read Article
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* ── Profile header card ── */}
+        <div className="bg-white border-b border-[#E5E7EB] px-6 pt-12 pb-8 text-center">
+          <h1 className="text-xl font-extrabold tracking-tight text-[#111827]">
+            {profile.full_name || `@${profile.handle}`}
+          </h1>
+          {profile.handle && (
+            <p className="text-[11px] text-[#9CA3AF] font-semibold mt-0.5">@{profile.handle}</p>
+          )}
+          {profile.bio && (
+            <p className="text-sm text-[#6B7280] mt-3 leading-relaxed max-w-xs mx-auto">
+              {profile.bio}
+            </p>
           )}
 
-          {activePage === "links" && (
-            <div className="space-y-6 animate-in fade-in duration-500">
-              <button onClick={() => setActivePage("home")} className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 flex items-center gap-2 mb-2" style={textColorStyle}>
-                <ArrowRight className="w-3 h-3 rotate-180" /> Back to Hub
+          {/* Quick action row */}
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <button
+              onClick={copyUrl}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#E5E7EB] text-[10px] font-bold text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827] transition-all"
+            >
+              <Copy className="w-3 h-3" /> Copy link
+            </button>
+            <button
+              onClick={shareUrl}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-full border border-[#E5E7EB] text-[10px] font-bold text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827] transition-all"
+            >
+              <Share className="w-3 h-3" /> Share
+            </button>
+          </div>
+        </div>
+
+        {/* ── Section nav tabs ── */}
+        {activePage !== "home" && (
+          <div className="px-6 pt-4 pb-0">
+            {["links", "portfolio", "blogs"].filter(s => profile?.customization?.sections_visibility?.[s] !== false).length > 1 && (
+              <button
+                onClick={() => setActivePage("home")}
+                className="flex items-center gap-1.5 text-[11px] font-bold text-[#6B7280] hover:text-[#111827] transition-colors mb-4"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Back
               </button>
-              
-              {links.some(l => l.active && (!l.category || l.category === "links")) && 
-               links.some(l => l.active && l.category === "store") && (
-                <div className="flex w-full p-0.5 bg-current/5 rounded-lg border border-current/5 mb-2 shrink-0">
-                  <button 
-                    onClick={() => { setPreviewTab("links"); setLinkSearch(""); }} 
-                    style={previewTab === "links" ? { backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) } : {}}
-                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-md transition-all text-center ${previewTab === "links" ? "shadow-sm" : "opacity-50"}`}
-                  >My Links</button>
-                  <button 
-                    onClick={() => { setPreviewTab("store"); setLinkSearch(""); }} 
-                    style={previewTab === "store" ? { backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) } : {}}
-                    className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-wider rounded-md transition-all text-center ${previewTab === "store" ? "shadow-sm" : "opacity-50"}`}
-                  >My Store</button>
-                </div>
-              )}
+            )}
+          </div>
+        )}
 
-              {/* Search bar below toggle */}
-              <div className="relative mb-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-40" style={textColorStyle} />
-                <input
-                  type="text"
-                  value={linkSearch}
-                  onChange={e => setLinkSearch(e.target.value)}
-                  placeholder={previewTab === "store" ? "Search store..." : "Search links..."}
-                  className="w-full h-8 pl-8 pr-3 rounded-xl bg-current/10 border border-current/10 text-[11px] font-medium backdrop-blur-sm focus:outline-none focus:ring-1 focus:ring-current/20 transition-all"
-                  style={{ color: textColorStyle.color }}
-                />
+        {/* ── HOME ── */}
+        {activePage === "home" && (
+          <div className="px-6 pt-6 space-y-3">
+            {[
+              { id: "links", label: "Links", icon: Globe, desc: "All my links & socials" },
+              { id: "portfolio", label: "Portfolio", icon: Briefcase, desc: "Projects & experience" },
+              { id: "blogs", label: "Blog", icon: BookOpen, desc: "Articles & thoughts" },
+            ]
+              .filter(item => profile?.customization?.sections_visibility?.[item.id] !== false)
+              .map(item => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActivePage(item.id as any)}
+                    className="group w-full flex items-center gap-4 p-4 bg-white border border-[#E5E7EB] rounded-2xl hover:border-[#111827] hover:shadow-sm transition-all text-left"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] flex items-center justify-center shrink-0 group-hover:bg-[#111827] group-hover:border-[#111827] transition-all">
+                      <Icon className="w-4 h-4 text-[#6B7280] group-hover:text-white transition-colors" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-[#111827]">{item.label}</div>
+                      <div className="text-[10px] text-[#9CA3AF] font-medium">{item.desc}</div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#9CA3AF] group-hover:text-[#111827] group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </button>
+                );
+              })}
+
+            {/* Latest blog preview */}
+            {blogs.length > 0 && profile?.customization?.sections_visibility?.blogs !== false && (
+              <div className="pt-2">
+                <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3">Latest Post</div>
+                <button
+                  onClick={() => { setSelectedBlog(blogs[0]); setActivePage("blogs"); }}
+                  className="w-full flex gap-3 p-4 bg-white border border-[#E5E7EB] rounded-2xl hover:border-[#111827] transition-all text-left"
+                >
+                  {blogs[0].image_url && (
+                    <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-[#F8FAFC]">
+                      <img src={blogs[0].image_url} alt={blogs[0].title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#111827] line-clamp-2 leading-tight">{blogs[0].title}</p>
+                    <p className="text-[10px] text-[#9CA3AF] mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> Read article
+                    </p>
+                  </div>
+                </button>
               </div>
+            )}
+          </div>
+        )}
 
-              <div className={`${isStoreView ? "grid grid-cols-2 gap-4" : "flex flex-col space-y-4"}`}>
-                {visibleLinks
-                  .filter(l => !linkSearch || l.title.toLowerCase().includes(linkSearch.toLowerCase()))
-                  .map((l) => {
+        {/* ── LINKS ── */}
+        {activePage === "links" && (
+          <div className="px-6 pt-2 pb-6 space-y-4">
+            {/* Links / Store tab toggle */}
+            {hasRegular && hasStore && (
+              <div className="flex p-0.5 bg-[#F3F4F6] rounded-xl border border-[#E5E7EB]">
+                <button
+                  onClick={() => { setPreviewTab("links"); setLinkSearch(""); }}
+                  className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${previewTab === "links" ? "bg-white shadow-sm text-[#111827]" : "text-[#9CA3AF]"}`}
+                >
+                  Links
+                </button>
+                <button
+                  onClick={() => { setPreviewTab("store"); setLinkSearch(""); }}
+                  className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${previewTab === "store" ? "bg-white shadow-sm text-[#111827]" : "text-[#9CA3AF]"}`}
+                >
+                  Store
+                </button>
+              </div>
+            )}
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9CA3AF]" />
+              <input
+                type="text"
+                value={linkSearch}
+                onChange={e => setLinkSearch(e.target.value)}
+                placeholder={isStoreView ? "Search store..." : "Search links..."}
+                className="w-full h-9 pl-9 pr-3 rounded-xl bg-white border border-[#E5E7EB] text-[11px] font-medium text-[#111827] focus:outline-none focus:border-[#111827] transition-all placeholder:text-[#9CA3AF]"
+              />
+            </div>
+
+            {/* Link cards */}
+            <div className={isStoreView ? "grid grid-cols-2 gap-3" : "flex flex-col gap-3"}>
+              {visibleLinks
+                .filter(l => !linkSearch || l.title.toLowerCase().includes(linkSearch.toLowerCase()))
+                .map(l => {
                   if (l.type === "header") {
-                    if ((isStoreView && l.category === "links") || (!isStoreView && l.category === "store")) return null;
+                    const crossCategory = isStoreView ? l.category === "links" : l.category === "store";
+                    if (crossCategory) return null;
                     return (
-                      <div key={l.id} className={`${isStoreView ? "col-span-2" : ""} text-center pt-6 pb-2 text-xs font-black uppercase tracking-[0.2em] opacity-70`} style={textColorStyle}>{l.title}</div>
+                      <div key={l.id} className={`${isStoreView ? "col-span-2" : ""} text-center py-2 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest`}>
+                        {l.title}
+                      </div>
                     );
                   }
 
                   if (isStoreView && l.category === "store") {
                     return (
-                      <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" style={{ ...getButtonStyle(), borderRadius: 24, padding: 0, overflow: 'hidden', border: 'none' }} className="relative flex flex-col items-center justify-end aspect-square shadow-sm hover:scale-[1.02] transition-transform group">
-                        <img src={`https://api.microlink.io/?url=${encodeURIComponent(l.originalUrl || l.url || "")}&embed=image.url`} alt={l.title} className="absolute inset-0 w-full h-full object-cover z-0 bg-muted" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10" />
-                        <span className="relative z-20 text-[13px] font-bold text-white text-center line-clamp-2 leading-tight p-4 w-full">{l.title}</span>
+                      <a
+                        key={l.id}
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative flex flex-col items-center justify-end aspect-square rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-md transition-all group"
+                      >
+                        <img
+                          src={`https://api.microlink.io/?url=${encodeURIComponent(l.originalUrl || l.url || "")}&embed=image.url`}
+                          alt={l.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <span className="relative text-[12px] font-bold text-white text-center p-3 w-full line-clamp-2 leading-tight">
+                          {l.title}
+                        </span>
                       </a>
                     );
                   }
 
                   if (!isStoreView && l.category === "links") {
                     return (
-                      <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" style={getButtonStyle()} className="flex items-center justify-center py-4 px-6 text-[15px] font-bold shadow-sm hover:scale-[1.02] transition-transform">
-                        <span className="truncate w-full text-center">{l.title}</span>
+                      <a
+                        key={l.id}
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 py-3.5 px-5 bg-white border border-[#E5E7EB] rounded-2xl text-sm font-bold text-[#111827] hover:border-[#111827] hover:shadow-sm transition-all"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-[#9CA3AF] shrink-0" />
+                        <span className="truncate">{l.title}</span>
                       </a>
                     );
                   }
                   return null;
                 })}
-              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {activePage === "portfolio" && (
-            <div className="animate-in slide-in-from-bottom-6 duration-700">
-              <button onClick={() => setActivePage("home")} className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 flex items-center gap-2 mb-4" style={textColorStyle}>
-                <ArrowRight className="w-3 h-3 rotate-180" /> Back to Hub
-              </button>
-              
-              {/* Main Outer Translucent Container */}
-              <div className="bg-current/5 border border-current/10 backdrop-blur-xl rounded-[2.5rem] p-4 md:p-6 space-y-4 shadow-2xl">
-                
-                {/* Nested Box 1: Contact & Quick Stats */}
-                {(profile.customization?.portfolio?.contact_email || profile.customization?.portfolio?.location || profile.customization?.portfolio?.website || profile.customization?.portfolio?.resume_url || profile.customization?.portfolio?.linkedin_url || profile.customization?.portfolio?.summary) && (
-                <div className="bg-current/5 border border-current/10 rounded-3xl p-6 space-y-5 hover:bg-current/10 transition-colors">
-                  <div className="flex flex-wrap gap-4">
-                    {profile.customization?.portfolio?.contact_email && (
-                      <a href={`mailto:${profile.customization.portfolio.contact_email}`} className="flex items-center gap-2 text-xs font-bold opacity-70 hover:opacity-100 transition-opacity" style={textColorStyle}>
-                        <Mail className="w-4 h-4" /> Email Me
-                      </a>
-                    )}
-                    {profile.customization?.portfolio?.location && (
-                      <div className="flex items-center gap-2 text-xs font-bold opacity-70" style={textColorStyle}>
-                        <MapPin className="w-4 h-4" /> {profile.customization.portfolio.location}
-                      </div>
-                    )}
-                    {profile.customization?.portfolio?.website && (
-                      <a href={profile.customization.portfolio.website.startsWith('http') ? profile.customization.portfolio.website : `https://${profile.customization.portfolio.website}`} target="_blank" className="flex items-center gap-2 text-xs font-bold opacity-70 hover:opacity-100 transition-opacity" style={textColorStyle}>
-                        <Globe className="w-4 h-4" /> Website
-                      </a>
-                    )}
-                  </div>
-                  
-                  {(profile.customization?.portfolio?.resume_url || profile.customization?.portfolio?.linkedin_url) && (
-                  <div className="flex flex-wrap gap-3 pt-1">
+        {/* ── PORTFOLIO ── */}
+        {activePage === "portfolio" && (
+          <div className="px-6 pt-2 pb-6 space-y-4">
+            {/* Contact info */}
+            {(profile.customization?.portfolio?.contact_email ||
+              profile.customization?.portfolio?.location ||
+              profile.customization?.portfolio?.website) && (
+              <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5 space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  {profile.customization?.portfolio?.contact_email && (
+                    <a href={`mailto:${profile.customization.portfolio.contact_email}`} className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors">
+                      <Mail className="w-3.5 h-3.5" /> Email
+                    </a>
+                  )}
+                  {profile.customization?.portfolio?.location && (
+                    <span className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7280]">
+                      <MapPin className="w-3.5 h-3.5" /> {profile.customization.portfolio.location}
+                    </span>
+                  )}
+                  {profile.customization?.portfolio?.website && (
+                    <a href={profile.customization.portfolio.website.startsWith("http") ? profile.customization.portfolio.website : `https://${profile.customization.portfolio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors">
+                      <Globe className="w-3.5 h-3.5" /> Website
+                    </a>
+                  )}
+                </div>
+
+                {(profile.customization?.portfolio?.resume_url || profile.customization?.portfolio?.linkedin_url) && (
+                  <div className="flex gap-2">
                     {profile.customization?.portfolio?.resume_url && (
-                    <Button 
-                      className="flex-1 h-10 rounded-2xl font-bold hover:opacity-90 shadow-xl text-xs"
-                      style={{ backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) }}
-                      onClick={() => window.open(profile.customization!.portfolio.resume_url, '_blank')}
-                    >
-                      <Save className="w-3.5 h-3.5 mr-2" /> Download Resume
-                    </Button>
+                      <button onClick={() => window.open(profile.customization.portfolio.resume_url, "_blank")} className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-[#111827] text-white text-[10px] font-bold rounded-full hover:bg-black/90 transition-colors">
+                        <Save className="w-3 h-3" /> Resume
+                      </button>
                     )}
                     {profile.customization?.portfolio?.linkedin_url && (
-                    <Button 
-                      className="flex-1 h-10 rounded-2xl font-bold hover:opacity-90 shadow-xl text-xs"
-                      style={{ backgroundColor: textColorStyle.color, color: getAutoTextColor(textColorStyle.color as string) }}
-                      onClick={() => window.open(profile.customization!.portfolio.linkedin_url, '_blank')}
-                    >
-                      <Globe className="w-3.5 h-3.5 mr-2" /> LinkedIn Profile
-                    </Button>
+                      <button onClick={() => window.open(profile.customization.portfolio.linkedin_url, "_blank")} className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[#E5E7EB] text-[#111827] text-[10px] font-bold rounded-full hover:bg-[#F8FAFC] transition-colors">
+                        <Globe className="w-3 h-3" /> LinkedIn
+                      </button>
                     )}
                   </div>
-                  )}
-
-                  {profile.customization?.portfolio?.summary && (
-                    <div className="pt-5 border-t border-current/10">
-                      <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2" style={textColorStyle}>About / Summary</h3>
-                      <p className="text-sm leading-relaxed opacity-90" style={textColorStyle}>{profile.customization.portfolio.summary}</p>
-                    </div>
-                  )}
-                </div>
                 )}
 
-                {/* Nested Box 2: Experience Section */}
-                {portfolio.length > 0 && (
-                <div className="bg-current/5 border border-current/10 rounded-3xl overflow-hidden hover:bg-current/10 transition-colors">
-                  <div className="p-6 border-b border-current/10 flex items-center gap-3">
-                    <Briefcase className="w-4 h-4 opacity-50" style={textColorStyle} />
-                    <h3 className="font-bold text-base" style={textColorStyle}>Work Experience</h3>
-                  </div>
-                  <div className="divide-y divide-current/10">
-                    {portfolio.map(item => (
-                      <div key={item.id} className="p-6 space-y-4">
-                        <div className="flex gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-current/10 overflow-hidden shrink-0 border border-current/10 flex items-center justify-center shadow-sm">
-                            {item.image_url ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" /> : <Briefcase className="w-5 h-5 opacity-20" style={textColorStyle} />}
-                          </div>
-                          <div className="flex-1 min-w-0 pt-1">
-                            <h4 className="font-bold text-sm md:text-base leading-tight truncate" style={textColorStyle}>{item.title}</h4>
-                            <p className="text-[11px] font-medium opacity-60 mt-1" style={textColorStyle}>{item.date_range || "Present"}</p>
-                          </div>
-                        </div>
-                        <p className="text-sm opacity-80 leading-relaxed" style={textColorStyle}>{item.description}</p>
-                        {item.tags && item.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {item.tags.map(t => (
-                              <span key={t} className="px-2 py-1 bg-current/5 text-[9px] font-bold rounded-lg border border-current/10 opacity-70 shadow-sm">{t}</span>
-                            ))}
-                          </div>
-                        )}
-                        {item.project_url && (
-                          <a href={item.project_url} target="_blank" className="inline-flex items-center px-4 py-1.5 bg-current/10 hover:bg-current/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-current transition-colors">
-                            <ExternalLink className="mr-2 w-3 h-3" /> View Project
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                )}
-
-                {/* Nested Box 3 & 4: Skills & Education Grid */}
-                {((profile.customization?.portfolio?.skills && profile.customization.portfolio.skills.length > 0) || 
-                  (profile.customization?.portfolio?.education && profile.customization.portfolio.education.length > 0)) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {profile.customization?.portfolio?.skills && profile.customization.portfolio.skills.length > 0 && (
-                      <div className="bg-current/5 border border-current/10 rounded-3xl p-6 hover:bg-current/10 transition-colors">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 flex items-center gap-2" style={textColorStyle}>
-                          <Code2 className="w-3.5 h-3.5" /> Skills & Expertise
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {profile.customization.portfolio.skills.map((skill: string) => (
-                            <span 
-                              key={skill} 
-                              className="px-3 py-1 text-[11px] font-bold rounded-xl shadow-sm hover:scale-105 transition-transform"
-                              style={{ 
-                                backgroundColor: textColorStyle.color, 
-                                color: getAutoTextColor(textColorStyle.color as string) 
-                              }}
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {profile.customization?.portfolio?.education && profile.customization.portfolio.education.length > 0 && (
-                      <div className="bg-current/5 border border-current/10 rounded-3xl p-6 hover:bg-current/10 transition-colors">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-4 flex items-center gap-2" style={textColorStyle}>
-                          <GraduationCap className="w-3.5 h-3.5" /> Education
-                        </h3>
-                        <div className="space-y-5">
-                          {(profile.customization.portfolio.education as Education[]).map(edu => (
-                            <div key={edu.id} className="relative pl-4 border-l-2 border-current/20">
-                              <h4 className="text-[13px] font-bold leading-tight" style={textColorStyle}>{edu.degree}</h4>
-                              <p className="text-[11px] opacity-60 mt-1" style={textColorStyle}>{edu.school}</p>
-                              <p className="text-[9px] font-bold opacity-30 mt-1" style={textColorStyle}>{edu.year}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {profile.customization?.portfolio?.summary && (
+                  <div className="pt-3 border-t border-[#E5E7EB]">
+                    <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-2">About</div>
+                    <p className="text-sm text-[#6B7280] leading-relaxed">{profile.customization.portfolio.summary}</p>
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {activePage === "blogs" && (
-            <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-              <button onClick={() => setActivePage("home")} className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 flex items-center gap-2 mb-2" style={textColorStyle}>
-                <ArrowRight className="w-3 h-3 rotate-180" /> Back to Hub
+            {/* Experience */}
+            {portfolio.length > 0 && (
+              <div className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-[#E5E7EB] flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-[#6B7280]" />
+                  <span className="text-sm font-bold text-[#111827]">Experience</span>
+                </div>
+                <div className="divide-y divide-[#E5E7EB]">
+                  {portfolio.map(item => (
+                    <div key={item.id} className="p-5 space-y-3">
+                      <div className="flex gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E5E7EB] overflow-hidden shrink-0 flex items-center justify-center">
+                          {item.image_url
+                            ? <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                            : <Briefcase className="w-4 h-4 text-[#9CA3AF]" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-bold text-[#111827] truncate">{item.title}</div>
+                          <div className="text-[10px] text-[#9CA3AF] font-semibold mt-0.5">{item.date_range || "Present"}</div>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-[#6B7280] leading-relaxed">{item.description}</p>
+                      {item.tags && item.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {item.tags.map(t => (
+                            <span key={t} className="px-2 py-0.5 bg-[#F8FAFC] border border-[#E5E7EB] text-[9px] font-bold text-[#6B7280] rounded-full">{t}</span>
+                          ))}
+                        </div>
+                      )}
+                      {item.project_url && (
+                        <a href={item.project_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#111827] hover:underline">
+                          <ExternalLink className="w-3 h-3" /> View project
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Skills & Education */}
+            {((profile.customization?.portfolio?.skills?.length > 0) ||
+              (profile.customization?.portfolio?.education?.length > 0)) && (
+              <div className="grid grid-cols-1 gap-4">
+                {profile.customization?.portfolio?.skills?.length > 0 && (
+                  <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5">
+                    <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <Code2 className="w-3.5 h-3.5" /> Skills
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.customization.portfolio.skills.map((skill: string) => (
+                        <span key={skill} className="px-3 py-1 bg-[#111827] text-white text-[10px] font-bold rounded-full">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {profile.customization?.portfolio?.education?.length > 0 && (
+                  <div className="bg-white border border-[#E5E7EB] rounded-2xl p-5">
+                    <div className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <GraduationCap className="w-3.5 h-3.5" /> Education
+                    </div>
+                    <div className="space-y-4">
+                      {(profile.customization.portfolio.education as Education[]).map(edu => (
+                        <div key={edu.id} className="pl-3 border-l-2 border-[#E5E7EB]">
+                          <div className="text-sm font-bold text-[#111827]">{edu.degree}</div>
+                          <div className="text-[11px] text-[#6B7280] mt-0.5">{edu.school}</div>
+                          <div className="text-[10px] text-[#9CA3AF] mt-0.5">{edu.year}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── BLOGS ── */}
+        {activePage === "blogs" && (
+          <div className="px-6 pt-2 pb-6 space-y-3">
+            {blogs.map(post => (
+              <button
+                key={post.id}
+                onClick={() => setSelectedBlog(post)}
+                className="w-full bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden hover:border-[#111827] transition-all text-left group"
+              >
+                {post.image_url && (
+                  <div className="aspect-video overflow-hidden">
+                    <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex items-center gap-2 text-[10px] text-[#9CA3AF] font-semibold mb-2">
+                    <Calendar className="w-3 h-3" />
+                    {format(new Date(post.created_at), "MMM d, yyyy")}
+                    <span>·</span>
+                    <Clock className="w-3 h-3" />
+                    3 min read
+                  </div>
+                  <h3 className="text-sm font-bold text-[#111827] mb-1 leading-tight">{post.title}</h3>
+                  <p className="text-[11px] text-[#6B7280] line-clamp-2 leading-relaxed">
+                    {post.excerpt || post.content.substring(0, 120) + "..."}
+                  </p>
+                </div>
               </button>
-              
-              <div className="grid grid-cols-1 gap-6">
-                {blogs.map(post => (
-                  <div 
-                    key={post.id} 
-                    onClick={() => setSelectedBlog(post)}
-                    className="group cursor-pointer bg-current/5 border border-current/10 backdrop-blur-md rounded-[2.5rem] overflow-hidden p-3 hover:bg-current/10 transition-colors flex flex-col"
-                  >
-                    {post.image_url && (
-                      <div className="aspect-video rounded-[2rem] overflow-hidden mb-4 shrink-0">
-                        <img src={post.image_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                      </div>
-                    )}
-                    <div className="p-5 pt-2 flex-1 flex flex-col">
-                      <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3" style={textColorStyle}>
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {format(new Date(post.created_at), "MMM d")}</span>
-                        <span className="w-1 h-1 bg-current rounded-full" />
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 3 min</span>
-                      </div>
-                      <h4 className="text-xl font-bold mb-3" style={textColorStyle}>{post.title}</h4>
-                      <p className="text-sm opacity-70 leading-relaxed line-clamp-3" style={textColorStyle}>{post.excerpt || post.content.substring(0, 150) + "..."}</p>
-                      <button className="mt-auto pt-6 text-xs font-black uppercase tracking-widest underline underline-offset-8 decoration-2 text-left opacity-80 hover:opacity-100 transition-opacity" style={textColorStyle}>Read Full Story</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Action Buttons Row */}
-        <div className="mt-12 flex flex-wrap justify-center gap-2 w-full max-w-[320px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <button 
-            onClick={() => {
-              const url = window.location.href;
-              navigator.clipboard.writeText(url);
-              toast.success("Link copied!");
-            }}
-            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black bg-current/5 border border-current/10 rounded-2xl shadow-xl hover:bg-current/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={textColorStyle}
-          >
-            <Copy className="w-3.5 h-3.5 mr-1.5" /> Copy
-          </button>
-          <button 
-            onClick={() => {
-              const url = window.location.href;
-              if (navigator.share) {
-                navigator.share({ title: profile?.full_name || profile?.handle, url }).catch(() => {});
-              } else {
-                navigator.clipboard.writeText(url);
-                toast.success("Link copied!");
+
+
+        {/* ── Branding footer ── */}
+        <div className="mt-auto pt-10 pb-6 flex justify-center">
+          <a 
+            href="/" 
+            onClick={(e) => {
+              if (isAndroid()) {
+                e.preventDefault();
+                window.location.href = toAndroidIntent(window.location.origin);
               }
             }}
-            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black bg-current/5 border border-current/10 rounded-2xl shadow-xl hover:bg-current/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={textColorStyle}
+            className="flex items-center gap-1.5 text-[10px] font-bold text-[#9CA3AF] hover:text-[#6B7280] transition-colors uppercase tracking-widest"
           >
-            <Share className="w-3.5 h-3.5 mr-1.5" /> Share
-          </button>
-          <button 
-            onClick={() => setIsScannerOpen(true)}
-            style={getButtonStyle()}
-            className="flex-1 min-w-[80px] h-11 flex items-center justify-center text-[10px] uppercase tracking-widest font-black shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all"
-          >
-            <QrCode className="w-3.5 h-3.5 mr-1.5" /> Scan
-          </button>
-        </div>
-
-          <QRScannerModal 
-            isOpen={isScannerOpen} 
-            onClose={() => setIsScannerOpen(false)}
-            onScan={(text) => {
-              setIsScannerOpen(false);
-              if (text.startsWith("http")) {
-                window.location.href = text;
-              } else {
-                toast.info(`Scanned: ${text}`);
-              }
-            }}
-          />
-
-          {/* QR Code Footer */}
-          {profile?.customization?.sections_visibility?.qr !== false && (
-            <div id="qr-section" className="mt-8 pt-8 pb-12 flex flex-col items-center border-t border-current/10 w-full max-w-sm">
-              <QRCodeSVG 
-                value={window.location.href}
-                size={160}
-                level="H"
-                includeMargin={false}
-                bgColor="transparent"
-                fgColor={textColorStyle.color as string || "#000000"}
-              />
-              <div className="mt-8 flex items-center gap-2" style={textColorStyle}>
-                <QrCode className="w-5 h-5" />
-                <span className="text-xs font-black uppercase tracking-[0.3em]">Scan to view & share</span>
-              </div>
-            </div>
-          )}
-
-        {/* Branding Footer */}
-        <div className="pt-8 pb-16">
-          <a href="/" className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3" style={textColorStyle}>
-            <div className={`w-6 h-1 bg-current opacity-20 rounded-full`} />
-            Powered by TapOpen
+            <Zap className="w-3 h-3" /> Powered by TapOpen
           </a>
         </div>
-        
       </div>
 
-      {/* Blog Popup Modal */}
+      {/* ── Blog full-screen modal ── */}
       {selectedBlog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div 
-            className="border border-white/20 rounded-[2.5rem] w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden"
-            style={{ 
-              backgroundColor: profile?.customization?.background?.value || '#1a1a1a',
-              backgroundImage: profile?.customization?.background?.type === "image" ? `url(${profile.customization.background.value})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          >
-            {/* Inner overlay for readability if using image background */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-xl z-0" />
-
-            {/* Header */}
-            <div className="relative z-10 flex justify-between items-center p-6 border-b border-white/10 shrink-0 bg-white/5">
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest opacity-60" style={textColorStyle}>
-                <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {format(new Date(selectedBlog.created_at), "MMMM d, yyyy")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    const url = `${window.location.origin}/${slug}?blog=${selectedBlog.id}`;
-                    if (navigator.share) {
-                      navigator.share({ title: selectedBlog.title, url }).catch(() => {});
-                    } else {
-                      navigator.clipboard.writeText(url);
-                      toast.success("Blog link copied!");
-                    }
-                  }}
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-md"
-                >
-                  <Share className="w-4 h-4" style={textColorStyle} />
-                </button>
-                <button 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    setSelectedBlog(null); 
-                    // Optional: remove blog from URL
-                    if (searchParams.has("blog")) {
-                      window.history.pushState({}, '', `/${slug}`);
-                    }
-                  }}
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-md"
-                >
-                  <span className="text-sm font-bold" style={textColorStyle}>✕</span>
-                </button>
-              </div>
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
+          {/* Modal header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB] shrink-0">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest">
+              <Calendar className="w-3.5 h-3.5" />
+              {format(new Date(selectedBlog.created_at), "MMM d, yyyy")}
             </div>
-            
-            {/* Content (Scrollable) */}
-            <div className="relative z-10 overflow-y-auto p-6 md:p-10 hide-scrollbar bg-white/5">
-              {selectedBlog.image_url && (
-                <img src={selectedBlog.image_url} alt={selectedBlog.title} className="w-full h-48 md:h-72 object-cover rounded-[2rem] mb-8 shadow-xl border border-white/10" />
-              )}
-              <h2 className="text-2xl md:text-4xl font-black mb-8 leading-tight tracking-tight" style={textColorStyle}>{selectedBlog.title}</h2>
-              <div className="prose prose-invert max-w-none" style={{ ...textColorStyle, opacity: 0.9 }}>
-                <ReactMarkdown
-                  components={{
-                    a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-white underline hover:opacity-80 decoration-white/50 underline-offset-4" />
-                  }}
-                >
-                  {selectedBlog.content}
-                </ReactMarkdown>
-              </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/${slug}?blog=${selectedBlog.id}`;
+                  if (navigator.share) navigator.share({ title: selectedBlog.title, url }).catch(() => {});
+                  else { navigator.clipboard.writeText(url); toast.success("Blog link copied!"); }
+                }}
+                className="w-9 h-9 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#6B7280] hover:bg-[#F8FAFC] transition-colors"
+              >
+                <Share className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => { setSelectedBlog(null); if (searchParams.has("blog")) window.history.pushState({}, "", `/${slug}`); }}
+                className="w-9 h-9 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#6B7280] hover:bg-[#F8FAFC] transition-colors text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Modal content */}
+          <div className="flex-1 overflow-y-auto px-5 py-8 max-w-xl mx-auto w-full">
+            {selectedBlog.image_url && (
+              <img src={selectedBlog.image_url} alt={selectedBlog.title} className="w-full aspect-video object-cover rounded-2xl mb-6 border border-[#E5E7EB]" />
+            )}
+            <h2 className="text-2xl font-extrabold text-[#111827] leading-tight mb-6 tracking-tight">
+              {selectedBlog.title}
+            </h2>
+            <div className="prose prose-sm max-w-none text-[#374151] leading-relaxed">
+              <ReactMarkdown
+                components={{
+                  a: ({ node, ...props }) => (
+                    <a {...props} target="_blank" rel="noopener noreferrer" className="text-[#111827] underline underline-offset-4 hover:opacity-70 transition-opacity" />
+                  ),
+                }}
+              >
+                {selectedBlog.content}
+              </ReactMarkdown>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

@@ -1,74 +1,85 @@
-# TapOpen
+# TapOpen (Open Source)
 
-Mobile-first deep linking for creators. Bypass in-app browsers and open content directly in native apps (YouTube, Instagram, Spotify, etc.).
+<div align="center">
+  <img src="https://via.placeholder.com/1200x400/111827/FFFFFF?text=TapOpen+Ecosystem" alt="TapOpen" />
+  
+  <p align="center">
+    <b>A unified edge-infrastructure platform designed to maximize audience conversion.</b>
+  </p>
+</div>
 
-## 🚀 Tech Stack
+## 🚀 Welcome to TapOpen
 
-### Frontend Core
-- **React 18** - UI library for building modular interfaces.
-- **Vite** - Lightning-fast build tool and development server.
-- **TypeScript** - For robust, type-safe development and scalability.
-- **React Router DOM** - Handling seamless navigation and slug-based redirects.
+TapOpen is an all-in-one ecosystem for creators and developers. It provides intelligent native app routing (escaping the "walled garden" of in-app browsers like Instagram or TikTok), a powerful link-in-bio profile engine, forms, and a centralized hub for audience engagement.
 
-### Backend & Database
-- **Supabase** - Backend-as-a-Service providing:
-  - **Auth**: Secure Gmail-first authentication.
-  - **PostgreSQL**: Robust database for link and analytics storage.
-  - **Realtime**: Live updates for dashboard interactions.
+**We believe in Open Source.** We open-source our tools so you can self-host, build upon our communication engines (like *Bulky* for WhatsApp campaigns), and truly own your audience data.
 
-### Styling & UI
-- **Tailwind CSS** - Utility-first styling for a sleek, responsive design.
-- **Shadcn/UI** - Accessible, high-quality primitive components built on **Radix UI**.
-- **Framer Motion** - Smooth transitions and premium micro-animations.
-- **Lucide React** - Beautiful, consistent iconography.
+*(For a deep dive into the problem we are solving, the pitch deck, and detailed philosophy, see [INFORMATION.md](./INFORMATION.md))*
 
-### Analytics & Utilities
-- **Recharts** - Interactive 7-day traffic trend visualization.
-- **React Query** - Efficient server-state management and caching.
-- **Sonner** - Lightweight, elegant toast notifications.
-- **NanoID** - Generation of short, unique link aliases.
+## 🛠 Features
 
-## 🛠️ Project Structure
+- **Quick Links:** Edge-powered deep-linking (sub-50ms latency). Bypasses in-app browsers instantly to route users natively.
+- **Profiles Dashboard:** Clean, premium, developer-friendly digital headquarters combining links, CVs, and markdown blogs.
+- **Store & Forms Integration:** Seamless audience and lead capture.
+- **Bulky (WhatsApp Engine):** Easily dispatch bulk campaigns and track delivery safely.
 
-- `src/pages`: Component owners for primary views (Dashboard, Redirect, Landing).
-- `src/components`: Granular, reusable UI modules.
-- `src/hooks`: Decoupled business logic (Link management, Redirect strategies).
-- `src/services`: Abstracted database interaction layer.
-- `src/lib`: Shared utilities and deep-link detection algorithms.
-- `src/types`: Centralized TypeScript definitions.
+## 💻 Tech Stack
 
-## Getting Started
+- **Framework:** [React](https://react.dev) + [Vite](https://vitejs.dev/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/) + [Shadcn UI](https://ui.shadcn.com/)
+- **Backend/Auth:** [Supabase](https://supabase.com/)
+- **Routing/Edge:** [Cloudflare Pages](https://pages.cloudflare.com/)
+
+---
+
+## ⚙️ Getting Started
 
 ### Prerequisites
+- Node.js (v16+)
+- A [Supabase](https://supabase.com/) account (free tier works perfectly)
 
-- Node.js (v18 or higher)
-- npm (v9 or higher)
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/tapopen.git
+cd tapopen/tapopen-links
+```
 
-### Installation
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/tapopen-links.git
-   cd tapopen-links
-   ```
+### 3. Setup Supabase
+1. Create a new Supabase project.
+2. Go to Project Settings -> API.
+3. Copy `.env.example` to `.env` (don't worry, `.env` is git-ignored so your credentials are safe!):
+```bash
+cp .env.example .env
+```
+4. Fill in your environment variables in `.env`:
+```env
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### 4. Run the Local Development Server
+```bash
+npm run dev
+```
+Open your browser and visit `http://localhost:5173`.
 
-3. Configure Environment Variables:
-   Create a `.env` file in the root directory and add your keys:
-   ```env
-   VITE_SUPABASE_URL=your-supabase-url
-   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-   ```
+---
 
-4. Run Development Server:
-   ```bash
-   npm run dev
-   ```
+## 🤝 Contributing
 
-## License
+We love contributions from the community! Whether it's fixing a bug, adding a feature to the Profiles builder, or improving our deep-link algorithms:
+1. Fork the project.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
-MIT License - Copyright (c) 2024 TapOpen
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.

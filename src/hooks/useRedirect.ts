@@ -32,8 +32,8 @@ export const useRedirect = (slug: string | undefined) => {
         // Tracking (background)
         linkService.recordClick(slug, data.clicks, data.clicks_daily || {}).catch(console.error);
 
-        // Redirect Logic
-        if (isInInstagram() && isAndroid()) {
+        // Universal Native App Redirect Logic
+        if (isAndroid()) {
           window.location.href = toAndroidIntent(url);
           setTimeout(() => {
             setNeedsManualOpen(true);
@@ -42,7 +42,7 @@ export const useRedirect = (slug: string | undefined) => {
           return;
         }
 
-        if (isInInstagram() && isIOS()) {
+        if (isIOS()) {
           const appScheme = toAppScheme(url);
           if (appScheme) {
             const iframe = document.createElement("iframe");
@@ -54,28 +54,12 @@ export const useRedirect = (slug: string | undefined) => {
               setNeedsManualOpen(true);
               setIsProcessing(false);
             }, 500);
-          } else {
-            setNeedsManualOpen(true);
-            setIsProcessing(false);
+            return;
           }
-          return;
+          // Fallback if no specific iOS app scheme is known
         }
 
-        if (isInAppBrowser()) {
-          if (isAndroid()) {
-            window.location.href = toAndroidIntent(url);
-            setTimeout(() => {
-              setNeedsManualOpen(true);
-              setIsProcessing(false);
-            }, 500);
-          } else {
-            setNeedsManualOpen(true);
-            setIsProcessing(false);
-          }
-          return;
-        }
-
-        // Standard Browser
+        // Standard Browser (Desktop or unrecognized mobile scheme)
         window.location.replace(url);
       } catch (err: any) {
         setError(err.message || "Link not found or expired.");

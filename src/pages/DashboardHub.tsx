@@ -106,9 +106,9 @@ const DashboardHub = () => {
   };
 
   const hubItems = [
-    { title: "Link Page", description: "Links & Store items", icon: Layout, path: "/dashboard/links" },
-    { title: "Portfolio", description: "Professional Resume", icon: Briefcase, path: "/dashboard/portfolio" },
-    { title: "Blogs", description: "Articles & Stories", icon: BookOpen, path: "/dashboard/blogs" }
+    { title: "Link Page", description: "Links & Store items", icon: Layout, path: "/console/links" },
+    { title: "Portfolio", description: "Professional Resume", icon: Briefcase, path: "/console/portfolio" },
+    { title: "Blogs", description: "Articles & Stories", icon: BookOpen, path: "/console/blogs" }
   ];
 
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
@@ -146,7 +146,7 @@ const DashboardHub = () => {
       {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
       <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
         <div className="mb-6 md:mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Dashboard</h1>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">My Console</h1>
           <p className="text-sm md:text-base text-muted-foreground mb-6">Manage your entire digital world and appearance.</p>
           <div className="xl:hidden">
             {actionButtons}

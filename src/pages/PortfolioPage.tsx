@@ -96,6 +96,22 @@ const PortfolioPage = () => {
     }
   };
 
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  useEffect(() => {
+    if (isInitialLoad) {
+      if (!loading && profile.summary !== undefined) {
+        setIsInitialLoad(false);
+      }
+      return;
+    }
+    
+    const timer = setTimeout(() => {
+      saveProfile();
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [profile]);
+
   const saveProfile = async () => {
     setSaving(true);
     try {
@@ -165,116 +181,101 @@ const PortfolioPage = () => {
   if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
-      
-      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
-      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 md:mb-12">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Professional Profile</h1>
-            <p className="text-sm md:text-base text-muted-foreground font-medium">Build your high-impact digital resume and portfolio.</p>
-          </div>
-          <div className="flex flex-col md:flex-row w-full md:w-auto gap-3 md:gap-4">
-            <Button 
-              variant="outline" 
-              className="w-full md:w-auto h-12 px-6 rounded-2xl border-primary/20 text-primary hover:bg-primary/5 font-bold"
-              onClick={async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) return;
-                const { data } = await supabase.from("profiles").select("handle").eq("id", session.user.id).single();
-                if (data?.handle) window.open(`/${data.handle}/portfolio`, "_blank");
-              }}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Preview
-            </Button>
-            <Button onClick={saveProfile} disabled={saving} className="w-full md:w-auto h-12 px-8 rounded-2xl shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-              Save Changes
-            </Button>
-          </div>
-        </div>
-
-        {/* Stacked Content in Feed Column */}
-        <div className="space-y-8">
-          
-          {/* Section: Professional Summary */}
-          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-              <User className="w-4 h-4" /> Professional Summary
-            </h3>
-            <Textarea 
-              placeholder="E.g. Passionate Full Stack Developer with 5+ years experience building scalable web applications..."
-              value={profile.summary}
-              onChange={(e) => setProfile({ ...profile, summary: e.target.value })}
-              className="min-h-[150px] resize-none text-sm leading-relaxed"
-            />
-          </div>
-
-          {/* Section: Contact & Skills */}
-          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm space-y-8">
+    <div className="bg-[#F8FAFC] min-h-screen">
+      <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
+        
+        {/* ---------------- CENTER FEED CONTENT (max 650px) ---------------- */}
+        <div className="flex-1 w-full max-w-[650px] mx-auto space-y-10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 md:mb-12">
             <div>
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                <Mail className="w-4 h-4" /> Contact Information
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#111827] tracking-tight mb-2">Professional Profile</h1>
+              <p className="text-sm text-[#6B7280] font-medium">Build your high-impact digital resume and portfolio.</p>
+            </div>
+
+          </div>
+
+          {/* Stacked Content in Feed Column */}
+          <div className="space-y-6">
+            {/* Section: Professional Summary */}
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-4 flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-blue-600" /> Professional Summary
               </h3>
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Work Email</label>
-                  <Input 
-                    value={profile.contact_email}
-                    onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
-                    placeholder="hello@yourwork.com"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Location</label>
+              <Textarea 
+                placeholder="E.g. Passionate Full Stack Developer with 5+ years experience building scalable web applications..."
+                value={profile.summary}
+                onChange={(e) => setProfile({ ...profile, summary: e.target.value })}
+                className="min-h-[120px] resize-none text-sm leading-relaxed rounded-xl border-[#E5E7EB] focus:border-blue-500 placeholder:text-[#9CA3AF] p-4"
+              />
+            </div>
+
+            {/* Section: Contact & Skills */}
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm space-y-8">
+              <div>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-4 flex items-center gap-2">
+                  <Mail className="w-3.5 h-3.5 text-blue-600" /> Contact Information
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase text-[#6B7280]">Work Email</label>
                     <Input 
-                      value={profile.location}
-                      onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                      placeholder="New York, NY"
+                      value={profile.contact_email}
+                      onChange={(e) => setProfile({ ...profile, contact_email: e.target.value })}
+                      placeholder="hello@yourwork.com"
+                      className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Website</label>
-                    <Input 
-                      value={profile.website}
-                      onChange={(e) => setProfile({ ...profile, website: e.target.value })}
-                      placeholder="portfolio.com"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase text-[#6B7280]">Location</label>
+                      <Input 
+                        value={profile.location}
+                        onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                        placeholder="New York, NY"
+                        className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold uppercase text-[#6B7280]">Website</label>
+                      <Input 
+                        value={profile.website}
+                        onChange={(e) => setProfile({ ...profile, website: e.target.value })}
+                        placeholder="portfolio.com"
+                        className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Section: Professional Assets */}
-            <div className="pt-8 border-t border-border">
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                <Save className="w-4 h-4" /> Professional Assets
+            <div className="pt-8 border-t border-[#E5E7EB]">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-4 flex items-center gap-2">
+                <Save className="w-3.5 h-3.5 text-blue-600" /> Professional Assets
               </h3>
               <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">LinkedIn Profile URL</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-[#6B7280]">LinkedIn Profile URL</label>
                   <Input 
                     value={profile.linkedin_url}
                     onChange={(e) => setProfile({ ...profile, linkedin_url: e.target.value })}
                     placeholder="https://linkedin.com/in/yourusername"
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground ml-1">Resume / CV (Google Drive / PDF Link)</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase text-[#6B7280]">Resume / CV (Google Drive / PDF Link)</label>
                   <Input 
                     value={profile.resume_url}
                     onChange={(e) => setProfile({ ...profile, resume_url: e.target.value })}
                     placeholder="https://drive.google.com/file/d/your-resume-link"
+                    className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-8 border-t border-border">
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-                <Code2 className="w-4 h-4" /> Skills & Expertise
+            <div className="pt-8 border-t border-[#E5E7EB]">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-4 flex items-center gap-2">
+                <Code2 className="w-3.5 h-3.5 text-blue-600" /> Skills & Expertise
               </h3>
               <div className="flex gap-2 mb-4">
                 <Input 
@@ -282,14 +283,15 @@ const PortfolioPage = () => {
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (addSkill(tagInput), setTagInput(""))}
+                  className="h-11 rounded-xl bg-white border-[#E5E7EB] text-sm text-[#111827] focus:border-blue-500 placeholder:text-[#9CA3AF]"
                 />
-                <Button variant="secondary" onClick={() => (addSkill(tagInput), setTagInput(""))}>Add</Button>
+                <Button variant="outline" onClick={() => (addSkill(tagInput), setTagInput(""))} className="h-11 px-5 rounded-xl border-[#E5E7EB] text-[#111827] hover:bg-[#F8FAFC]">Add</Button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {profile.skills.map(skill => (
-                  <span key={skill} className="px-3 py-1 bg-primary/5 text-primary text-xs font-bold rounded-full border border-primary/10 flex items-center gap-2">
+                  <span key={skill} className="px-3 py-1 bg-[#F8FAFC] text-[#111827] text-xs font-bold rounded-lg border border-[#E5E7EB] flex items-center gap-2">
                     {skill}
-                    <button onClick={() => setProfile({ ...profile, skills: profile.skills.filter(s => s !== skill) })} className="hover:text-destructive">×</button>
+                    <button onClick={() => setProfile({ ...profile, skills: profile.skills.filter(s => s !== skill) })} className="text-[#9CA3AF] hover:text-red-600">×</button>
                   </span>
                 ))}
               </div>
@@ -298,50 +300,51 @@ const PortfolioPage = () => {
         </div>
         
         {/* Experience & Timeline block stacked below Profile block */}
-        <div className="space-y-8">
-          <div className="bg-card border border-border rounded-[2rem] shadow-sm overflow-hidden">
-            <div className="p-6 md:p-8 border-b border-border bg-muted/20 flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
-              <h3 className="font-bold text-xl flex items-center gap-3">
-                <Briefcase className="w-6 h-6 text-primary" /> Work Experience
+        {/* Experience & Timeline block stacked below Profile block */}
+        <div className="space-y-6">
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-[#E5E7EB] bg-[#F8FAFC] flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
+              <h3 className="font-bold text-[#111827] flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-blue-600" /> Work Experience
               </h3>
-              <Button size="sm" variant="ghost" onClick={() => setIsAddingProject(true)} className="rounded-xl w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" /> Add Entry
+              <Button size="sm" variant="outline" onClick={() => setIsAddingProject(true)} className="rounded-xl h-9 px-4 border-[#E5E7EB] hover:bg-[#E5E7EB]/50 text-[#111827] shadow-none w-full sm:w-auto">
+                <Plus className="w-3.5 h-3.5 mr-1.5" /> Add Entry
               </Button>
             </div>
 
             {items.length === 0 ? (
-              <div className="p-20 text-center text-muted-foreground">
-                <Briefcase className="w-12 h-12 opacity-10 mx-auto mb-4" />
+              <div className="p-16 text-center text-[#9CA3AF] text-sm font-medium">
+                <Briefcase className="w-8 h-8 opacity-20 mx-auto mb-3" />
                 No experience entries yet.
               </div>
             ) : (
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-[#E5E7EB]">
                 {items.map(item => (
-                  <div key={item.id} className="p-8 group hover:bg-muted/5 transition-colors">
-                    <div className="flex gap-4 md:gap-6">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl border border-border bg-muted shrink-0 overflow-hidden flex items-center justify-center">
-                        {item.image_url ? <img src={item.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="opacity-20" />}
+                  <div key={item.id} className="p-6 group hover:bg-[#F8FAFC] transition-colors">
+                    <div className="flex gap-4 md:gap-5">
+                      <div className="w-12 h-12 rounded-xl border border-[#E5E7EB] bg-white shrink-0 overflow-hidden flex items-center justify-center">
+                        {item.image_url ? <img src={item.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-[#E5E7EB]" />}
                       </div>
-                      <div className="flex-1 space-y-3 min-w-0">
+                      <div className="flex-1 space-y-2 min-w-0">
                         <div className="flex gap-2 justify-between items-start">
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-base md:text-lg font-bold group-hover:text-primary transition-colors truncate">{item.title}</h4>
-                            <p className="text-xs md:text-sm font-semibold text-muted-foreground">{item.date_range || "Present"}</p>
+                            <h4 className="text-sm font-bold text-[#111827] group-hover:text-blue-600 transition-colors truncate">{item.title}</h4>
+                            <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wide">{item.date_range || "Present"}</p>
                           </div>
-                          <button onClick={() => deleteProject(item.id)} className="p-2 shrink-0 opacity-100 md:opacity-0 group-hover:opacity-100 text-destructive transition-all hover:bg-destructive/10 rounded-xl">
-                            <Trash2 className="w-4 h-4" />
+                          <button onClick={() => deleteProject(item.id)} className="p-1.5 shrink-0 opacity-100 md:opacity-0 group-hover:opacity-100 text-[#9CA3AF] transition-all hover:bg-red-50 hover:text-red-600 rounded-lg">
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">{item.description}</p>
+                        <p className="text-sm leading-relaxed text-[#4B5563] whitespace-pre-line">{item.description}</p>
                         {item.tags && item.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 pt-2">
+                          <div className="flex flex-wrap gap-2 pt-1">
                             {item.tags.map(t => (
-                              <span key={t} className="px-2 py-0.5 bg-muted text-[10px] font-bold rounded border border-border">{t}</span>
+                              <span key={t} className="px-2 py-0.5 bg-white text-[10px] font-bold text-[#6B7280] rounded border border-[#E5E7EB]">{t}</span>
                             ))}
                           </div>
                         )}
                         {item.project_url && (
-                          <a href={item.project_url} target="_blank" className="inline-flex items-center text-xs font-bold text-primary hover:underline pt-2">
+                          <a href={item.project_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-xs font-bold text-blue-600 hover:underline pt-2">
                             View Work <ExternalLink className="ml-1 w-3 h-3" />
                           </a>
                         )}
@@ -354,31 +357,31 @@ const PortfolioPage = () => {
           </div>
 
           {/* Section: Education */}
-          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-sm mt-8">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-primary mb-6 flex items-center gap-2">
-              <GraduationCap className="w-4 h-4" /> Education
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 shadow-sm">
+            <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#9CA3AF] mb-4 flex items-center gap-2">
+              <GraduationCap className="w-3.5 h-3.5 text-blue-600" /> Education
             </h3>
             <div className="space-y-6">
               {profile.education.map((edu, idx) => (
-                <div key={edu.id} className="group relative pl-4 border-l-2 border-primary/20">
+                <div key={edu.id} className="group relative pl-4 border-l-2 border-[#E5E7EB] hover:border-blue-600 transition-colors">
                   <button 
                     onClick={() => setProfile({ ...profile, education: profile.education.filter((_, i) => i !== idx) })}
-                    className="absolute right-0 top-0 p-1 opacity-0 group-hover:opacity-100 text-destructive transition-opacity"
+                    className="absolute right-0 top-0 p-1 opacity-0 group-hover:opacity-100 text-[#9CA3AF] hover:text-red-600 transition-opacity"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
-                  <h4 className="font-bold text-sm">{edu.degree}</h4>
-                  <p className="text-xs text-muted-foreground">{edu.school}</p>
-                  <p className="text-[10px] font-bold opacity-50">{edu.year}</p>
+                  <h4 className="font-bold text-sm text-[#111827]">{edu.degree}</h4>
+                  <p className="text-xs text-[#6B7280] font-medium">{edu.school}</p>
+                  <p className="text-[10px] font-bold text-[#9CA3AF]">{edu.year}</p>
                 </div>
               ))}
               <div className="pt-4 space-y-3">
-                <Input placeholder="Degree / Certificate" id="new-degree" className="h-9 text-xs" />
-                <Input placeholder="University / Platform" id="new-school" className="h-9 text-xs" />
-                <Input placeholder="Year" id="new-year" className="h-9 text-xs" />
+                <Input placeholder="Degree / Certificate" id="new-degree" className="h-10 text-xs rounded-lg border-[#E5E7EB]" />
+                <Input placeholder="University / Platform" id="new-school" className="h-10 text-xs rounded-lg border-[#E5E7EB]" />
+                <Input placeholder="Year" id="new-year" className="h-10 text-xs rounded-lg border-[#E5E7EB]" />
                 <Button 
                   variant="outline" 
-                  className="w-full text-[10px] font-black uppercase"
+                  className="w-full text-xs font-bold rounded-lg h-10 border-[#E5E7EB] text-[#111827] hover:bg-[#F8FAFC]"
                   onClick={() => {
                     const d = (document.getElementById("new-degree") as HTMLInputElement).value;
                     const s = (document.getElementById("new-school") as HTMLInputElement).value;
@@ -394,24 +397,24 @@ const PortfolioPage = () => {
 
           {/* Project Adder Form (Floating) */}
           {isAddingProject && (
-            <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-              <div className="bg-card border border-border rounded-[3rem] p-10 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-300">
-                <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
-                  <Plus className="w-6 h-6 text-primary" /> New Experience
+            <div className="fixed inset-0 bg-[#111827]/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+              <div className="bg-white border border-[#E5E7EB] rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in zoom-in-95 duration-200">
+                <h3 className="text-lg font-bold text-[#111827] mb-6 flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-blue-600" /> New Experience
                 </h3>
                 <div className="space-y-4">
-                  <Input placeholder="Role / Title" value={newProject.title} onChange={(e) => setNewProject({...newProject, title: e.target.value})} />
-                  <Input placeholder="Timeline (e.g. 2021 - Present)" value={newProject.date_range} onChange={(e) => setNewProject({...newProject, date_range: e.target.value})} />
-                  <Textarea placeholder="Key achievements..." value={newProject.description} onChange={(e) => setNewProject({...newProject, description: e.target.value})} className="min-h-[120px]" />
-                  <Input placeholder="Company Logo URL" value={newProject.image_url} onChange={(e) => setNewProject({...newProject, image_url: e.target.value})} />
-                  <div className="flex gap-4 pt-6">
-                    <Button variant="ghost" onClick={() => setIsAddingProject(false)} className="flex-1 rounded-2xl h-12">Cancel</Button>
-                    <Button onClick={addProject} className="flex-1 rounded-2xl h-12 font-bold">Add to Resume</Button>
+                  <Input placeholder="Role / Title" value={newProject.title} onChange={(e) => setNewProject({...newProject, title: e.target.value})} className="h-11 rounded-xl border-[#E5E7EB]" />
+                  <Input placeholder="Timeline (e.g. 2021 - Present)" value={newProject.date_range} onChange={(e) => setNewProject({...newProject, date_range: e.target.value})} className="h-11 rounded-xl border-[#E5E7EB]" />
+                  <Textarea placeholder="Key achievements..." value={newProject.description} onChange={(e) => setNewProject({...newProject, description: e.target.value})} className="min-h-[120px] rounded-xl border-[#E5E7EB] resize-none" />
+                  <div className="flex gap-3 pt-4">
+                    <Button variant="outline" onClick={() => setIsAddingProject(false)} className="flex-1 rounded-xl h-11 border-[#E5E7EB] text-[#111827]">Cancel</Button>
+                    <Button onClick={addProject} className="flex-1 rounded-xl h-11 font-bold bg-[#111827] text-white hover:bg-black">Add to Resume</Button>
                   </div>
                 </div>
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

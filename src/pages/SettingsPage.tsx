@@ -1,15 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  Settings, Shield, Key, Trash2, Check, Loader2, 
-  User, Link2, Instagram, Twitter, Globe, Eye, EyeOff, BookOpen
-} from "lucide-react";
+import { Settings, Shield, Key, Loader2, User, HelpCircle, Bell, Laptop, Cloud } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
-const SettingsPage = () => {
+export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
-  const [saveStatus, setSaveStatus] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [profile, setProfile] = useState({
     full_name: "",
@@ -17,92 +15,43 @@ const SettingsPage = () => {
     bio: ""
   });
   const [passwords, setPasswords] = useState({
-    current: "",
     new: "",
     confirm: ""
-  });
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false
   });
   const [updatingPassword, setUpdatingPassword] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchSettings() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
-        
         setUserEmail(session.user.email || "");
 
-        // Fetch profile data
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
-        
-        // Auth Metadata Fallback (If profile is fresh or missing)
-        const meta = session.user.user_metadata || {};
-        
+
         if (data) {
           setProfile({
-            full_name: data.full_name || meta.full_name || "",
-            handle: data.handle || meta.handle || "",
-            bio: data.bio || "",
-            customization: data.customization || {}
+            full_name: data.full_name || "",
+            handle: data.handle || "",
+            bio: data.bio || ""
           });
-        } else {
-          // If no profile found, pre-fill with Auth data
-          setProfile(prev => ({
-            ...prev,
-            full_name: meta.full_name || "",
-            handle: meta.handle || ""
-          }));
         }
-      } catch (error) {
-        console.error("Error loading settings:", error);
+      } catch (err) {
+        console.error(err);
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchData();
+    }
+    fetchSettings();
   }, []);
 
-  useEffect(() => {
-    // Check if we should scroll to security section
-    if (window.location.hash === "#security") {
-      const element = document.getElementById("security");
-      if (element) {
-        setTimeout(() => {
-          element.scrollIntoView({ behavior: "smooth" });
-          toast.info("You can now set your new password below.");
-        }, 500);
-      }
-    }
-  }, []);
-
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (loading) return;
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      handleSave();
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [profile, loading]);
-
-  const handleSave = async () => {
+  const handleProfileSave = async () => {
+    setSaving(true);
     try {
-      setSaveStatus(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
@@ -111,16 +60,16 @@ const SettingsPage = () => {
         .update({
           full_name: profile.full_name,
           handle: profile.handle,
-          bio: profile.bio,
-          customization: (profile as any).customization
+          bio: profile.bio
         })
         .eq("id", session.user.id);
 
       if (error) throw error;
-    } catch (error: any) {
-      console.error(error.message || "Error saving settings");
+      toast.success("Settings updated");
+    } catch {
+      toast.error("Failed to save settings");
     } finally {
-      setTimeout(() => setSaveStatus(false), 2000);
+      setSaving(false);
     }
   };
 
@@ -134,243 +83,188 @@ const SettingsPage = () => {
       return;
     }
 
+    setUpdatingPassword(true);
     try {
-      setUpdatingPassword(true);
-      
-      // Note: Supabase doesn't strictly require current password for update
-      // but we ask for it as a UI best practice.
       const { error } = await supabase.auth.updateUser({ 
         password: passwords.new 
       });
-
       if (error) throw error;
-      
       toast.success("Password updated successfully!");
-      setPasswords({ current: "", new: "", confirm: "" });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update password");
+      setPasswords({ new: "", confirm: "" });
+    } catch {
+      toast.error("Failed to update password");
     } finally {
       setUpdatingPassword(false);
     }
   };
 
-  const handleDeleteAccount = async () => {
-    const confirmDelete = window.confirm(
-      "Are you absolutely sure? This will permanently delete all your links and profile data. This action cannot be undone."
-    );
-
-    if (!confirmDelete) return;
-
-    try {
-      setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      // 1. Delete all links
-      const { error: linksError } = await supabase
-        .from("links")
-        .delete()
-        .eq("user_id", session.user.id);
-      
-      if (linksError) throw linksError;
-
-      // 2. Delete profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", session.user.id);
-      
-      if (profileError) throw profileError;
-
-      // 3. Sign out
-      await supabase.auth.signOut();
-      toast.success("Account data deleted successfully.");
-      window.location.href = "/";
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete account data");
-      setLoading(false);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="w-8 h-8 text-slate-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col justify-center px-4 md:px-6 py-8 md:py-12 pb-32 max-w-[1000px] mx-auto w-full">
-      {/* ---------------- CENTER FEED CONTENT (max 600px) ---------------- */}
-      <div className="flex-1 w-full max-w-[600px] mx-auto space-y-10">
-        <div className="mb-6 md:mb-12 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Account Settings</h1>
-            <p className="text-sm text-muted-foreground">Manage your creator identity, security, and preferences.</p>
-          </div>
-          {saveStatus && (
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-success/10 text-success rounded-full text-[10px] font-bold uppercase tracking-widest animate-in fade-in">
-              <Check className="w-3 h-3" /> Auto-saved
-            </div>
-          )}
-        </div>
+    <div className="max-w-3xl mx-auto px-6 py-10 font-inter text-[#111827]">
+      
+      {/* Header */}
+      <header className="mb-10 border-b border-[#E5E7EB] pb-6">
+        <h1 className="text-3xl font-extrabold tracking-tight">Global Account Settings</h1>
+        <p className="text-xs text-[#6B7280] mt-1">Manage your workspace configuration, credentials, notifications, and products.</p>
+      </header>
 
-        <div className="space-y-10">
-        {/* Creator Identity */}
-        <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-border bg-muted/20">
-            <h3 className="font-display font-bold flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" /> Creator Identity
-            </h3>
-          </div>
-          <div className="p-5 md:p-8 space-y-6 md:space-y-8">
-            <div className="flex flex-col sm:flex-row items-center gap-6 pb-4">
-              <div className="w-24 h-24 rounded-3xl gradient-bg flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl shrink-0">
-                {profile.full_name?.charAt(0).toUpperCase() || "U"}
-              </div>
-              <div className="flex-1 space-y-4 w-full">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Display Name</label>
-                    <input 
-                      type="text" 
-                      value={profile.full_name}
-                      onChange={(e) => setProfile({...profile, full_name: e.target.value})}
-                      className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-                      placeholder="Your Name"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Unique Handle</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-mono">@</span>
-                      <input 
-                        type="text" 
-                        value={profile.handle}
-                        onChange={(e) => setProfile({...profile, handle: e.target.value})}
-                        className="w-full bg-background border border-border rounded-xl pl-8 pr-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors font-mono"
-                        placeholder="username"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+      <div className="space-y-10">
+        
+        {/* Profile Card */}
+        <div className="border border-[#E5E7EB] rounded-xl p-6 bg-white space-y-6">
+          <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
+            <User className="w-4 h-4 text-blue-600" />
+            User Identity
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Bio</label>
-              <textarea 
-                rows={3}
-                value={profile.bio}
-                onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors resize-none"
-                placeholder="Tell your fans who you are..."
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Display Name</label>
+              <Input 
+                value={profile.full_name} 
+                onChange={e => setProfile({...profile, full_name: e.target.value})} 
+                placeholder="Full Name" 
+                className="h-10 rounded-lg text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">User Handle</label>
+              <Input 
+                value={profile.handle} 
+                onChange={e => setProfile({...profile, handle: e.target.value})} 
+                placeholder="handle" 
+                className="h-10 rounded-lg text-xs"
               />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Email address</label>
+            <Input 
+              value={userEmail} 
+              disabled 
+              className="h-10 rounded-lg text-xs bg-[#F8FAFC]"
+            />
+          </div>
+          <Button 
+            onClick={handleProfileSave} 
+            disabled={saving}
+            className="bg-black hover:bg-[#111827]/90 text-white text-xs px-4 py-2 font-semibold rounded-lg"
+          >
+            {saving ? "Saving..." : "Save Profile Details"}
+          </Button>
         </div>
 
-        {/* Security */}
-        <div id="security" className="bg-card border border-border rounded-3xl overflow-hidden shadow-sm scroll-mt-24">
-          <div className="p-6 border-b border-border bg-muted/20">
-            <h3 className="font-display font-bold flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" /> Login & Security
-            </h3>
+        {/* Security / Password Card */}
+        <div className="border border-[#E5E7EB] rounded-xl p-6 bg-white space-y-6">
+          <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
+            <Key className="w-4 h-4 text-blue-600" />
+            Security & Authentication
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">New Password</label>
+              <Input 
+                type="password"
+                value={passwords.new} 
+                onChange={e => setPasswords({...passwords, new: e.target.value})} 
+                placeholder="••••••••" 
+                className="h-10 rounded-lg text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wide">Confirm Password</label>
+              <Input 
+                type="password"
+                value={passwords.confirm} 
+                onChange={e => setPasswords({...passwords, confirm: e.target.value})} 
+                placeholder="••••••••" 
+                className="h-10 rounded-lg text-xs"
+              />
+            </div>
           </div>
-          <div className="p-5 md:p-8 space-y-6">
-            <div className="grid md:grid-cols-1 gap-6">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Email Address</label>
-                <input 
-                  type="email" 
-                  disabled
-                  value={userEmail}
-                  className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm opacity-70 cursor-not-allowed"
-                />
-              </div>
+          <Button 
+            onClick={handlePasswordUpdate} 
+            disabled={updatingPassword}
+            className="bg-black hover:bg-[#111827]/90 text-white text-xs px-4 py-2 font-semibold rounded-lg"
+          >
+            {updatingPassword ? "Updating..." : "Update Security Password"}
+          </Button>
+        </div>
 
-              <div className="border-t border-border pt-6 mt-4 space-y-6">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-primary">Update Password</h4>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5 relative">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">New Password</label>
-                    <div className="relative">
-                      <input 
-                        type={showPasswords.new ? "text" : "password"}
-                        value={passwords.new}
-                        onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors pr-10"
-                        placeholder="••••••••"
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5 relative">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Confirm New Password</label>
-                    <div className="relative">
-                      <input 
-                        type={showPasswords.confirm ? "text" : "password"}
-                        value={passwords.confirm}
-                        onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                        className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors pr-10"
-                        placeholder="••••••••"
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => setShowPasswords({...showPasswords, confirm: !showPasswords.confirm})}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      >
-                        {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                  </div>
+        {/* Workspace Notifications */}
+        <div className="border border-[#E5E7EB] rounded-xl p-6 bg-white space-y-6">
+          <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
+            <Bell className="w-4 h-4 text-blue-600" />
+            System Notifications
+          </h3>
+          <div className="space-y-3">
+            {[
+              { id: "email_notif", label: "Email alerts", desc: "Send confirmation on new form response" },
+              { id: "sms_notif", label: "WhatsApp alerts", desc: "Notify workspace on campaign dispatch" },
+            ].map((item) => (
+              <div key={item.id} className="flex items-center justify-between py-2 border-b border-[#E5E7EB] last:border-0">
+                <div>
+                  <div className="text-xs font-bold text-[#111827]">{item.label}</div>
+                  <div className="text-[10px] text-[#6B7280] mt-0.5">{item.desc}</div>
                 </div>
+                <input type="checkbox" defaultChecked className="w-4.5 h-4.5 accent-blue-600 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
 
-                <Button 
-                  variant="outline" 
-                  className="h-12 rounded-xl w-full border-primary/20 text-primary hover:bg-primary/5 font-bold"
-                  onClick={handlePasswordUpdate}
-                  disabled={updatingPassword}
-                >
-                  {updatingPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Key className="h-4 w-4 mr-2" />}
-                  {updatingPassword ? "Updating..." : "Confirm Password Change"}
-                </Button>
+        {/* Sessions Active */}
+        <div className="border border-[#E5E7EB] rounded-xl p-6 bg-white space-y-6">
+          <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
+            <Laptop className="w-4 h-4 text-blue-600" />
+            Active Workspace Sessions
+          </h3>
+          <div className="flex items-center justify-between text-xs text-[#6B7280] font-medium bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              <Laptop className="w-5 h-5 text-[#6B7280]" />
+              <div>
+                <div className="font-bold text-[#111827]">Chrome on Windows</div>
+                <div className="text-[10px] text-[#9CA3AF] mt-0.5">Current Session • Active now</div>
               </div>
             </div>
+            <span className="bg-blue-50 text-blue-600 text-[8px] font-extrabold px-2 py-0.5 rounded-full">CURRENT</span>
           </div>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-destructive/5 border border-destructive/20 rounded-3xl overflow-hidden">
-          <div className="p-6 border-b border-destructive/10 bg-destructive/5 flex items-center justify-between">
-            <h3 className="font-display font-bold text-destructive flex items-center gap-2">
-              <Trash2 className="h-5 w-5" /> Danger Zone
-            </h3>
-          </div>
-          <div className="p-5 md:p-8 flex flex-col gap-6">
-            <div className="max-w-md">
-              <p className="font-bold text-destructive mb-1">Delete Account Permanently</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">This action cannot be undone. All your links, analytics, and settings will be wiped from our servers.</p>
-            </div>
-            <Button variant="destructive" size="lg" className="rounded-2xl w-full sm:w-auto px-10" onClick={handleDeleteAccount}>
-              Delete My Data
-            </Button>
+        {/* Connected Products */}
+        <div className="border border-[#E5E7EB] rounded-xl p-6 bg-white space-y-6">
+          <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
+            <Cloud className="w-4 h-4 text-blue-600" />
+            Connected Products Ecosystem
+          </h3>
+          <div className="divide-y divide-[#E5E7EB]">
+            {[
+              { name: "Quick Links", url: "tapopen.online/quick-links", status: "CONNECTED" },
+              { name: "Profiles", url: "tapopen.online/profiles", status: "CONNECTED" },
+              { name: "Forms", url: "forms.tapopen.online", status: "CONNECTED" },
+              { name: "Bulky", url: "github.com/harshammg/tapopen-bulky", status: "CONNECTED" },
+            ].map((prod) => (
+              <div key={prod.name} className="flex items-center justify-between py-3">
+                <div>
+                  <span className="text-xs font-bold text-[#111827]">{prod.name}</span>
+                  <span className="text-[10px] text-[#6B7280] block mt-0.5">{prod.url}</span>
+                </div>
+                <span className="text-[9px] font-bold text-green-600 bg-green-50 border border-[#E5E7EB] px-2 py-0.5 rounded">
+                  {prod.status}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
       </div>
+
     </div>
   );
-};
-
-export default SettingsPage;
+}

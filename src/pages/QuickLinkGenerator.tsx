@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Smartphone, Globe, Copy, Check, ExternalLink, Trash2, Link2, Loader2, MousePointer2 } from "lucide-react";
+import { Zap, Smartphone, Globe, Copy, Check, ExternalLink, Trash2, Link2, Loader2, MousePointer2, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { cleanUrl } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { linkService } from "@/services/linkService";
 import LinkGeneratorForm from "@/components/dashboard/LinkGeneratorForm";
 import { format, subDays, startOfDay, isSameDay } from "date-fns";
 import AnalyticsModal from "@/components/dashboard/AnalyticsModal";
+import { DiamondLoader } from "@/components/ui/DiamondLoader";
 
 interface QuickLink {
   id: string;
@@ -22,17 +23,28 @@ interface QuickLink {
 
 const QuickLinkGenerator = () => {
   const [url, setUrl] = useState("");
-  const [customSlug, setCustomSlug] = useState("");
-  const [aliasError, setAliasError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [quickLinks, setQuickLinks] = useState<QuickLink[]>([]);
   const [loadingLinks, setLoadingLinks] = useState(true);
   const [analysisLink, setAnalysisLink] = useState<QuickLink | "global" | null>(null);
 
+  const [customSlug, setCustomSlug] = useState("");
+  const [aliasError, setAliasError] = useState<string | null>(null);
+
   const detectedPlatform = platforms.find(p =>
     url.toLowerCase().includes(p.name.toLowerCase().split('/')[0].toLowerCase())
   );
+
+  // Auto-populate URL from landing-page generator (pre-login flow)
+  useEffect(() => {
+    const pending = localStorage.getItem("pending_tapopen_link");
+    if (pending) {
+      setUrl(pending);
+      localStorage.removeItem("pending_tapopen_link");
+      toast.info("URL ready — click Generate to shorten it!", { duration: 4000 });
+    }
+  }, []);
 
   // Fetch existing quick links on mount
   useEffect(() => {
@@ -75,12 +87,16 @@ const QuickLinkGenerator = () => {
     handleConfirmGenerate(skip);
   };
 
-  const handleConfirmGenerate = async (skipAlias?: boolean) => {
+  const handleConfirmGenerate = async () => {
+    if (customSlug && !/^[a-zA-Z0-9-_]+$/.test(customSlug)) {
+      setAliasError("Use letters, numbers, hyphens, or underscores only.");
+      return;
+    }
+    
     setAliasError(null);
     setIsGenerating(true);
     try {
-      let finalSlug = skipAlias ? "" : customSlug.trim().toLowerCase().replace(/\s+/g, '-');
-      if (!finalSlug) finalSlug = nanoid(8);
+      const finalSlug = customSlug || Math.random().toString(36).substr(2, 4).toUpperCase();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { toast.error("Not logged in"); return; }
       const created = await linkService.createLink({
@@ -99,8 +115,8 @@ const QuickLinkGenerator = () => {
       setCustomSlug("");
       toast.success("Quick link saved & generated!");
     } catch (err: any) {
-      if (err?.code === '23505') {
-        setAliasError("Alias taken! Try another or leave blank for a random one.");
+      if (err?.code === "23505" || err?.message?.includes("duplicate")) {
+        setAliasError("Alias is already taken.");
       } else {
         toast.error("Failed to generate link.");
       }
@@ -129,160 +145,144 @@ const QuickLinkGenerator = () => {
   };
 
   return (
-    <div className="px-4 py-6 md:p-12 max-w-5xl mx-auto w-full overflow-x-hidden">
-      <header className="text-center mb-10 md:mb-16">
-        <h1 className="text-3xl md:text-5xl font-display font-bold mb-3 tracking-tight">
-          Quick Link Generator
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground font-medium opacity-80">
-          Instantly generate short redirect links. Separate from your managed Link Page.
-        </p>
+    <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 md:py-12 bg-white sm:bg-[#F8FAFC] min-h-[calc(100vh-4rem)]">
+      
+      {/* ── Page Header ── */}
+      <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#111827] tracking-tight mb-2">
+            Quick Links
+          </h1>
+          <p className="text-sm text-[#6B7280] font-medium">
+            Generate and manage fast, secure short links.
+          </p>
+        </div>
       </header>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-          <LinkGeneratorForm
-            url={url}
-            setUrl={setUrl}
-            customSlug={customSlug}
-            setCustomSlug={setCustomSlug}
-            isGenerating={isGenerating}
-            onPaste={handlePaste}
-            onGenerate={handleGenerateClick}
-            detectedPlatform={detectedPlatform}
-            aliasError={aliasError}
-            setAliasError={setAliasError}
-          />
-
+      {/* ── KPI Stats Row ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-sm flex flex-col justify-center">
+          <div className="flex items-center gap-2 mb-2">
+            <Link2 className="w-4 h-4 text-blue-600" />
+            <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Total Links</span>
+          </div>
+          <span className="text-2xl font-black text-[#111827]">{quickLinks.length}</span>
         </div>
 
-        <aside className="hidden lg:block space-y-6">
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-            <h4 className="font-display font-bold mb-6 text-sm uppercase tracking-widest text-primary">
-              Platform Status
-            </h4>
-            <div className="space-y-5">
-              {[
-                { label: "Quick Links", val: quickLinks.length, icon: Zap },
-                { 
-                  label: "Total Clicks", 
-                  val: quickLinks.reduce((acc, link) => acc + (link.clicks || 0), 0), 
-                  icon: MousePointer2,
-                  clickable: true 
-                },
-                { label: "Deep Linking", val: "Optimal", icon: Smartphone },
-                { label: "Tracking", val: "Active", icon: Globe }
-              ].map((item, i) => (
-                <div 
-                  key={i} 
-                  className={`flex items-center gap-4 ${item.clickable ? "cursor-pointer hover:bg-primary/5 p-2 -m-2 rounded-xl transition-colors" : ""}`}
-                  onClick={() => item.clickable && setAnalysisLink("global")}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                    <item.icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</p>
-                    <p className="text-sm font-bold text-foreground">{item.val}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div 
+          onClick={() => setAnalysisLink("global")}
+          className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-sm flex flex-col justify-center cursor-pointer hover:border-[#111827] transition-colors"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <MousePointer2 className="w-4 h-4 text-blue-600" />
+            <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Total Clicks</span>
           </div>
-        </aside>
+          <span className="text-2xl font-black text-[#111827]">{quickLinks.reduce((acc, link) => acc + (link.clicks || 0), 0)}</span>
+        </div>
+
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-sm flex-col justify-center hidden md:flex">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe className="w-4 h-4 text-blue-600" />
+            <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Tracking</span>
+          </div>
+          <span className="text-sm font-bold text-[#111827]">Active</span>
+        </div>
+
+        <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 shadow-sm flex-col justify-center hidden md:flex">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="w-4 h-4 text-blue-600" />
+            <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Routing Speed</span>
+          </div>
+          <span className="text-sm font-bold text-[#111827]">&lt; 50ms</span>
+        </div>
       </div>
 
-      {/* Quick Links History */}
-      <div className="mt-12 md:mt-20">
-        {/* Mobile Stats Bar */}
-        <div className="lg:hidden grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <Zap className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Total Links</p>
-              <p className="text-sm font-bold text-foreground">{quickLinks.length}</p>
-            </div>
-          </div>
-          <div 
-            className="bg-card border border-border rounded-2xl p-4 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-primary/5 transition-colors active:scale-95"
-            onClick={() => setAnalysisLink("global")}
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-              <MousePointer2 className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground">Total Clicks</p>
-              <p className="text-sm font-bold text-foreground">{quickLinks.reduce((acc, link) => acc + (link.clicks || 0), 0)}</p>
-            </div>
-          </div>
-        </div>
+      {/* ── Generator ── */}
+      <div className="mb-10">
+        <LinkGeneratorForm
+          url={url}
+          setUrl={setUrl}
+          customSlug={customSlug}
+          setCustomSlug={setCustomSlug}
+          aliasError={aliasError}
+          setAliasError={setAliasError}
+          isGenerating={isGenerating}
+          onPaste={handlePaste}
+          onGenerate={handleGenerateClick}
+          detectedPlatform={detectedPlatform}
+        />
+      </div>
 
-        <h3 className="text-xl md:text-2xl font-display font-bold mb-8 flex items-center gap-3">
-          Your Quick Links
-          <span className="bg-muted px-2 py-0.5 rounded-lg text-xs text-muted-foreground">{quickLinks.length}</span>
-        </h3>
-
+      {/* ── Link History ── */}
+      <div>
+        <h3 className="text-lg font-bold text-[#111827] mb-4">Your Links</h3>
+        
         {loadingLinks ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="animate-spin text-primary w-6 h-6" />
+          <div className="flex items-center justify-center py-20 bg-white border border-[#E5E7EB] rounded-2xl shadow-sm">
+            <DiamondLoader text="Loading Links" />
           </div>
         ) : quickLinks.length === 0 ? (
-          <div className="text-center py-20 border-2 border-border border-dashed rounded-[32px] bg-muted/20">
-            <Link2 className="h-10 w-10 text-muted-foreground/20 mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium">No quick links yet. Generate one above.</p>
+          <div className="flex flex-col items-center justify-center py-20 bg-white border border-[#E5E7EB] rounded-2xl shadow-sm text-center px-4">
+            <div className="w-12 h-12 bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl flex items-center justify-center mb-4">
+              <Link2 className="h-6 w-6 text-[#9CA3AF]" />
+            </div>
+            <p className="text-sm text-[#111827] font-bold">No links created yet</p>
+            <p className="text-xs text-[#6B7280] mt-1">Paste a URL above to generate your first short link.</p>
           </div>
         ) : (
-          <div className="grid gap-4">
-            {quickLinks.map((link) => {
+          <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm overflow-hidden">
+            {quickLinks.map((link, idx) => {
               const fullLink = `${window.location.origin}/${link.slug}`;
               return (
-                <div key={link.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col space-y-4 shadow-sm hover:border-primary/30 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                      <Zap className="w-5 h-5" />
+                <div 
+                  key={link.id} 
+                  className={`flex flex-col md:flex-row md:items-center justify-between p-4 sm:p-5 gap-4 hover:bg-[#F8FAFC] transition-colors ${idx !== quickLinks.length - 1 ? 'border-b border-[#E5E7EB]' : ''}`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <a href={fullLink} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-[#111827] hover:text-blue-600 truncate transition-colors">
+                        tapopen.online/{link.slug}
+                      </a>
+                      <span className="px-2 py-0.5 bg-[#F8FAFC] border border-[#E5E7EB] rounded text-[9px] font-bold text-[#6B7280]">
+                        {format(new Date(link.created_at), 'MMM d, yyyy')}
+                      </span>
                     </div>
-                    <div className="min-w-0 flex-1 overflow-hidden">
-                      <p className="text-sm font-bold truncate hover:text-primary transition-colors">
-                        {fullLink.length > 30 ? fullLink.substring(0, 30) + "..." : fullLink}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate opacity-50 mt-0.5">
-                        {link.original_url}
-                      </p>
-                    </div>
+                    <p className="text-xs text-[#6B7280] truncate max-w-lg" title={link.original_url}>
+                      {link.original_url}
+                    </p>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                    <div 
-                      className="flex flex-col cursor-pointer hover:bg-primary/5 p-2 -m-2 rounded-xl transition-colors group"
+                  <div className="flex items-center gap-4 shrink-0">
+                    <button 
                       onClick={() => setAnalysisLink(link)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[#E5E7EB]/50 transition-colors group"
                     >
-                      <span className="text-sm font-black text-primary group-hover:scale-110 transition-transform origin-left">{link.clicks || 0}</span>
-                      <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">Total Clicks</span>
-                    </div>
+                      <BarChart3 className="w-4 h-4 text-[#9CA3AF] group-hover:text-blue-600" />
+                      <span className="text-xs font-bold text-[#111827] group-hover:text-blue-600">{link.clicks || 0}</span>
+                    </button>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="h-4 w-px bg-[#E5E7EB]"></div>
+
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => handleCopy(fullLink)}
-                        className="flex items-center gap-2 px-2 sm:px-3 py-1.5 rounded-lg bg-muted/50 hover:bg-primary hover:text-primary-foreground transition-all text-muted-foreground text-xs font-bold shrink-0"
+                        className="p-1.5 rounded-lg text-[#6B7280] hover:bg-[#E5E7EB]/50 hover:text-[#111827] transition-colors"
                         title="Copy link"
                       >
-                        {copied === fullLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                        <span className="hidden sm:inline">{copied === fullLink ? "Copied" : "Copy"}</span>
+                        {copied === fullLink ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                       </button>
                       <a 
                         href={fullLink} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-primary shrink-0"
+                        className="p-1.5 rounded-lg text-[#6B7280] hover:bg-[#E5E7EB]/50 hover:text-[#111827] transition-colors"
                         title="Open Link"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
                       <button
                         onClick={() => handleDelete(link.slug, link.id)}
-                        className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive shrink-0"
+                        className="p-1.5 rounded-lg text-[#9CA3AF] hover:bg-red-50 hover:text-red-600 transition-colors"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
