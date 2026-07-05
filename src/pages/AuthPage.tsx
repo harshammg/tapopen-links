@@ -12,15 +12,22 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const getRedirectPath = () => {
+  // Read the stored redirect WITHOUT deleting it (used for OAuth flow)
+  const peekRedirectPath = () => {
+    const savedRedirect = localStorage.getItem("tapopen_redirect");
+    if (savedRedirect) return savedRedirect;
+    if (localStorage.getItem("pending_tapopen_link")) return "/console/quick-links";
+    return "/console";
+  };
+
+  // Read the stored redirect AND delete it (used for email/password login)
+  const consumeRedirectPath = () => {
     const savedRedirect = localStorage.getItem("tapopen_redirect");
     if (savedRedirect) {
       localStorage.removeItem("tapopen_redirect");
       return savedRedirect;
     }
-    if (localStorage.getItem("pending_tapopen_link")) {
-      return "/console/quick-links";
-    }
+    if (localStorage.getItem("pending_tapopen_link")) return "/console/quick-links";
     return "/console";
   };
 
@@ -29,12 +36,12 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     const checkSession = async () => {
       if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate(getRedirectPath());
+      if (session) navigate(consumeRedirectPath());
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) navigate(getRedirectPath());
+      if (event === 'SIGNED_IN' && session) navigate(consumeRedirectPath());
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -153,9 +160,12 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
   const handleGoogleLogin = async () => {
     try {
+      // Redirect back to this same page after Google auth.
+      // onAuthStateChange will fire SIGNED_IN and consumeRedirectPath() will
+      // navigate to the correct destination (localStorage key is still intact).
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}${getRedirectPath()}` }
+        options: { redirectTo: window.location.href }
       });
       if (error) throw error;
     } catch (error: any) {
