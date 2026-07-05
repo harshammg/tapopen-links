@@ -25,6 +25,15 @@ export default function QuickLinksLanding() {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
   }, []);
 
+  const goToConsole = () => {
+    if (session) {
+      navigate("/console/quick-links");
+    } else {
+      localStorage.setItem("tapopen_redirect", "/console/quick-links");
+      navigate("/auth/signup");
+    }
+  };
+
   const generateShortLink = async () => {
     const trimmed = url.trim();
     if (!trimmed) return;
@@ -184,7 +193,7 @@ export default function QuickLinksLanding() {
                   Shorten another
                 </button>
                 <Button
-                  onClick={() => navigate(session ? "/console/quick-links" : "/auth/signup")}
+                  onClick={goToConsole}
                   className="flex-1 h-9 bg-[#111827] hover:bg-black text-white rounded-xl text-[11px] font-bold shadow-none"
                 >
                   <ExternalLink className="w-3 h-3 mr-1.5" />
@@ -299,7 +308,7 @@ export default function QuickLinksLanding() {
             Get instant redirects, detailed geographic analytics, and clean short links under your profile workspace.
           </p>
           <Button
-            onClick={() => navigate(session ? "/console/quick-links" : "/auth/signup")}
+            onClick={goToConsole}
             className="bg-black hover:bg-black/90 text-white rounded-full text-xs px-6 h-10 font-semibold flex items-center gap-1.5 shadow-none mx-auto"
           >
             {session ? "Open Quick Links Console" : "Get Started Free"}

@@ -12,7 +12,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const getRedirectPath = () => {
+  const [redirectPath] = useState(() => {
     const savedRedirect = localStorage.getItem("tapopen_redirect");
     if (savedRedirect) {
       localStorage.removeItem("tapopen_redirect");
@@ -22,22 +22,22 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
       return "/console/quick-links";
     }
     return "/console";
-  };
+  });
 
   useEffect(() => {
     if (!supabase) return;
     const checkSession = async () => {
       if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate(getRedirectPath());
+      if (session) navigate(redirectPath);
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) navigate(getRedirectPath());
+      if (event === 'SIGNED_IN' && session) navigate(redirectPath);
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirectPath]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +87,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
         if (authData.session) {
           toast.success("Welcome to TapOpen!");
-          navigate(getRedirectPath());
+          navigate(redirectPath);
         } else {
           toast.success("Account created! Please check your email to confirm.");
           navigate("/auth/login");
@@ -123,7 +123,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         }
 
         toast.success("Welcome back!");
-        navigate(getRedirectPath());
+        navigate(redirectPath);
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -157,7 +157,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}${getRedirectPath()}` }
+        options: { redirectTo: `${window.location.origin}${redirectPath}` }
       });
       if (error) throw error;
     } catch (error: any) {
