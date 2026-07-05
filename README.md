@@ -12,8 +12,6 @@ TapOpen is an all-in-one ecosystem for creators and developers. It provides inte
 
 **We believe in Open Source.** We open-source our tools so you can self-host, build upon our communication engines (like *Bulky* for WhatsApp campaigns), and truly own your audience data.
 
-*(For a deep dive into the problem we are solving, the pitch deck, and detailed philosophy, see [INFORMATION.md](./INFORMATION.md))*
-
 ## Features
 
 - **Quick Links:** Edge-powered deep-linking (sub-50ms latency). Bypasses in-app browsers instantly to route users natively.
