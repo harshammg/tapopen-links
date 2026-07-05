@@ -1,14 +1,12 @@
 # TapOpen (Open Source)
 
 <div align="center">
-  <img src="https://via.placeholder.com/1200x400/111827/FFFFFF?text=TapOpen+Ecosystem" alt="TapOpen" />
-  
   <p align="center">
     <b>A unified edge-infrastructure platform designed to maximize audience conversion.</b>
   </p>
 </div>
 
-## 🚀 Welcome to TapOpen
+## Welcome to TapOpen
 
 TapOpen is an all-in-one ecosystem for creators and developers. It provides intelligent native app routing (escaping the "walled garden" of in-app browsers like Instagram or TikTok), a powerful link-in-bio profile engine, forms, and a centralized hub for audience engagement.
 
@@ -16,14 +14,14 @@ TapOpen is an all-in-one ecosystem for creators and developers. It provides inte
 
 *(For a deep dive into the problem we are solving, the pitch deck, and detailed philosophy, see [INFORMATION.md](./INFORMATION.md))*
 
-## 🛠 Features
+## Features
 
 - **Quick Links:** Edge-powered deep-linking (sub-50ms latency). Bypasses in-app browsers instantly to route users natively.
 - **Profiles Dashboard:** Clean, premium, developer-friendly digital headquarters combining links, CVs, and markdown blogs.
 - **Store & Forms Integration:** Seamless audience and lead capture.
 - **Bulky (WhatsApp Engine):** Easily dispatch bulk campaigns and track delivery safely.
 
-## 💻 Tech Stack
+## Tech Stack
 
 - **Framework:** [React](https://react.dev) + [Vite](https://vitejs.dev/)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
@@ -33,7 +31,7 @@ TapOpen is an all-in-one ecosystem for creators and developers. It provides inte
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v16+)
@@ -71,7 +69,7 @@ Open your browser and visit `http://localhost:5173`.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We love contributions from the community! Whether it's fixing a bug, adding a feature to the Profiles builder, or improving our deep-link algorithms:
 1. Fork the project.
@@ -80,6 +78,6 @@ We love contributions from the community! Whether it's fixing a bug, adding a fe
 4. Push to the branch (`git push origin feature/AmazingFeature`).
 5. Open a Pull Request.
 
-## 📝 License
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
