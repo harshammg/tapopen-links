@@ -421,6 +421,12 @@ const PublicProfile: React.FC<PublicProfileProps> = ({ previewData }) => {
                       <a
                         key={l.id}
                         href={l.url}
+                        onClick={(e) => {
+                          if (isAndroid()) {
+                            e.preventDefault();
+                            window.location.href = toAndroidIntent(l.url);
+                          }
+                        }}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="relative flex flex-col items-center justify-end aspect-square rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-sm hover:shadow-md transition-all group"
@@ -443,6 +449,12 @@ const PublicProfile: React.FC<PublicProfileProps> = ({ previewData }) => {
                       <a
                         key={l.id}
                         href={l.url}
+                        onClick={(e) => {
+                          if (isAndroid()) {
+                            e.preventDefault();
+                            window.location.href = toAndroidIntent(l.url);
+                          }
+                        }}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 py-3.5 px-5 bg-white border border-[#E5E7EB] rounded-2xl text-sm font-bold text-[#111827] hover:border-[#111827] hover:shadow-sm transition-all"
@@ -478,7 +490,19 @@ const PublicProfile: React.FC<PublicProfileProps> = ({ previewData }) => {
                     </span>
                   )}
                   {profile.customization?.portfolio?.website && (
-                    <a href={profile.customization.portfolio.website.startsWith("http") ? profile.customization.portfolio.website : `https://${profile.customization.portfolio.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors">
+                    <a 
+                      href={profile.customization.portfolio.website.startsWith("http") ? profile.customization.portfolio.website : `https://${profile.customization.portfolio.website}`} 
+                      onClick={(e) => {
+                        if (isAndroid()) {
+                          e.preventDefault();
+                          const url = profile.customization.portfolio.website.startsWith("http") ? profile.customization.portfolio.website : `https://${profile.customization.portfolio.website}`;
+                          window.location.href = toAndroidIntent(url);
+                        }
+                      }}
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-1.5 text-xs font-semibold text-[#6B7280] hover:text-[#111827] transition-colors"
+                    >
                       <Globe className="w-3.5 h-3.5" /> Website
                     </a>
                   )}
@@ -487,12 +511,24 @@ const PublicProfile: React.FC<PublicProfileProps> = ({ previewData }) => {
                 {(profile.customization?.portfolio?.resume_url || profile.customization?.portfolio?.linkedin_url) && (
                   <div className="flex gap-2">
                     {profile.customization?.portfolio?.resume_url && (
-                      <button onClick={() => window.open(profile.customization.portfolio.resume_url, "_blank")} className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-[#111827] text-white text-[10px] font-bold rounded-full hover:bg-black/90 transition-colors">
+                      <button 
+                        onClick={() => {
+                          if (isAndroid()) window.location.href = toAndroidIntent(profile.customization.portfolio.resume_url);
+                          else window.open(profile.customization.portfolio.resume_url, "_blank");
+                        }} 
+                        className="flex-1 flex items-center justify-center gap-1.5 h-9 bg-[#111827] text-white text-[10px] font-bold rounded-full hover:bg-black/90 transition-colors"
+                      >
                         <Save className="w-3 h-3" /> Resume
                       </button>
                     )}
                     {profile.customization?.portfolio?.linkedin_url && (
-                      <button onClick={() => window.open(profile.customization.portfolio.linkedin_url, "_blank")} className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[#E5E7EB] text-[#111827] text-[10px] font-bold rounded-full hover:bg-[#F8FAFC] transition-colors">
+                      <button 
+                        onClick={() => {
+                          if (isAndroid()) window.location.href = toAndroidIntent(profile.customization.portfolio.linkedin_url);
+                          else window.open(profile.customization.portfolio.linkedin_url, "_blank");
+                        }} 
+                        className="flex-1 flex items-center justify-center gap-1.5 h-9 border border-[#E5E7EB] text-[#111827] text-[10px] font-bold rounded-full hover:bg-[#F8FAFC] transition-colors"
+                      >
                         <Globe className="w-3 h-3" /> LinkedIn
                       </button>
                     )}
@@ -538,7 +574,18 @@ const PublicProfile: React.FC<PublicProfileProps> = ({ previewData }) => {
                         </div>
                       )}
                       {item.project_url && (
-                        <a href={item.project_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#111827] hover:underline">
+                        <a 
+                          href={item.project_url} 
+                          onClick={(e) => {
+                            if (isAndroid()) {
+                              e.preventDefault();
+                              window.location.href = toAndroidIntent(item.project_url);
+                            }
+                          }}
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#111827] hover:underline"
+                        >
                           <ExternalLink className="w-3 h-3" /> View project
                         </a>
                       )}
