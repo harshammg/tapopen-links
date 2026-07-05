@@ -11,7 +11,11 @@ export default function ConsoleLayout() {
 
   useEffect(() => {
     if (!supabase) return;
+
     async function checkUser() {
+      if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
+        return; // Let Supabase onAuthStateChange handle the fragment parsing
+      }
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth/login");
@@ -20,6 +24,16 @@ export default function ConsoleLayout() {
       setCurrentUser(session.user);
     }
     checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setCurrentUser(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        navigate("/auth/login");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogout = async () => {
