@@ -12,7 +12,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const [redirectPath] = useState(() => {
+  const getRedirectPath = () => {
     const savedRedirect = localStorage.getItem("tapopen_redirect");
     if (savedRedirect) {
       localStorage.removeItem("tapopen_redirect");
@@ -22,22 +22,22 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
       return "/console/quick-links";
     }
     return "/console";
-  });
+  };
 
   useEffect(() => {
     if (!supabase) return;
     const checkSession = async () => {
       if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) return;
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) navigate(redirectPath);
+      if (session) navigate(getRedirectPath());
     };
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) navigate(redirectPath);
+      if (event === 'SIGNED_IN' && session) navigate(getRedirectPath());
     });
     return () => subscription.unsubscribe();
-  }, [navigate, redirectPath]);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +87,6 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
 
         if (authData.session) {
           toast.success("Welcome to TapOpen!");
-          navigate(redirectPath);
         } else {
           toast.success("Account created! Please check your email to confirm.");
           navigate("/auth/login");
@@ -123,7 +122,6 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
         }
 
         toast.success("Welcome back!");
-        navigate(redirectPath);
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -157,7 +155,7 @@ const AuthPage = ({ mode }: { mode: "login" | "signup" }) => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${window.location.origin}${redirectPath}` }
+        options: { redirectTo: `${window.location.origin}${getRedirectPath()}` }
       });
       if (error) throw error;
     } catch (error: any) {
