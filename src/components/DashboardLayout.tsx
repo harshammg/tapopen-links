@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Layout, BarChart3, Settings, LogOut, Zap, User, Briefcase, BookOpen, Link2, FileText, Send, ArrowLeft, Globe } from "lucide-react";
+import { Home, Layout, BarChart3, Settings, LogOut, Zap, User, Briefcase, BookOpen, Link2, FileText, Send, ArrowLeft, Globe, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
@@ -88,6 +88,14 @@ export default function ConsoleLayout() {
   const globalSidebarItems = [
     { label: "Global Settings", icon: Settings, path: "/console/settings" },
   ];
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-white font-inter text-[#111827]">
